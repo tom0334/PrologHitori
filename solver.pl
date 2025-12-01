@@ -1,4 +1,5 @@
 :- use_module(library(apply)).
+:- use_module(library(lists)).
 
 % This is actually the constraint programming libary
 % using too much from here feels kinda like cheating (?),
@@ -35,6 +36,7 @@ mediumPuzzle([
     [1, 6, 2, 4, 5, 3]
 ]).
 
+% https://www.chiark.greenend.org.uk/~sgtatham/puzzles/js/singles.html#10x10dk%23410746926154546
 bigPuzzle([
     [5, 10, 7, 9, 6, 6, 8, 1, 10, 3],
     [6, 5, 5, 7, 6, 3, 10, 10, 7, 2],
@@ -51,12 +53,19 @@ bigPuzzle([
 
 % https://www.chiark.greenend.org.uk/~sgtatham/puzzles/js/singles.html#10x10dk%23410746926154546
 isSolution(Board, Solution) :-
-	sameBoard(Board, Solution),
-	allRowsValid(Solution),
-	allColumnsValid(Solution),
-	noAdjecentZerosInBoard(Solution), 
-	allNonZeroConnected(Solution).
+    sameBoard(Board, Solution),
+    allRowsValid(Solution),
+    allColumnsValid(Solution),
+    allNonZeroConnected(Solution).
 
+
+
+% TODO trim the search space somehow. Right now, it generates all possible configurations for black squares in a very stupid way
+% this means, for a board of 5x5 you get 2^(5*5) possibilites. Damn. 
+% And thats actually a small puzzle haha
+% maybe i can only generate it differently: only generate in places that are duplicates
+% because you would never place a black square in a place thatts not a duplicate in the rows and allColumnsValid
+% right????
 
 %This set of predicates ensures the solution has the same shape and numbers in it as the board.
 sameBoard(Board, Solution) :-
@@ -70,27 +79,8 @@ cellOK(_, 0).
 cellOK(X, X).
 
 
-
-
-
-% True if a list has NO adjacent zeros
-noAdjecentZerosInList([]).
-noAdjecentZerosInList([_]).
-noAdjecentZerosInList([X,Y|T]) :-
-    \+ (X = 0, Y = 0),
-    noAdjecentZerosInList([Y|T]).
-
-%
-noAdjecentZerosInAllRows(Board):-
-	maplist(noAdjecentZerosInList, Board).
-
-% Check a board for no adjacent zeros in rows AND columns
-noAdjecentZerosInBoard(Board) :-
-    noAdjecentZerosInAllRows(Board),
-    transpose(Board, Transposed),
-    noAdjecentZerosInAllRows(Transposed).
-
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% VALID ROW AND COLUMN CONSTRAINT: (no duplicates)
 
 %This set of predicates can check if all ROWS or COLUMNS are valid. 
 %They are valid if they contain no duplicates, except zeros. Multiple zeros are allowed.
@@ -108,9 +98,11 @@ listWithoutZeros(List, R) :- subtract(List, [0], R).
 
 % then we can check wether a row or column is valid using this.
 % A row or column is valid all the numbers are uniqe, but any amount of zeros is allowed:
-isListValid(X) :- listWithoutZeros(X, ListWithoutZeros), simpleIsUnique(ListWithoutZeros).
-
-
+isListValid(X) :- 
+    \+ nextto(0,0,X), %from std list, nextTo(X,Y,List) is true if x is next to y in List
+    listWithoutZeros(X, ListWithoutZeros), 
+    simpleIsUnique(ListWithoutZeros).
+ 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % CONNECTED CONSTRAINT
