@@ -88,38 +88,21 @@ sameShape([A|As], [B|Bs]) :-
     sameShape(As, Bs).
 
 
-zeroCandidate(Board, (X,Y), Value) :-
-    nonUniqueInRow(Board, (X,Y), Value),
-    !.
-zeroCandidate(Board, (X,Y), Value) :-
-    nonUniqueInColumn(Board, (X,Y), Value),
-    !.
-
-nonUniqueInRow(Board, (_,Y),Value):-
+zeroCandidate(Board, (_,Y), Value) :-
     getRow(Board,Y,Row),
-    count(Value, Row, CountInRow),
-    CountInRow > 1.
-
-nonUniqueInColumn(Board,(X,_),Value):-
+    notUniqueInList(Value, Row),
+    !.
+zeroCandidate(Board, (X,_), Value) :-
     getColumn(Board,X,Column),
-    count(Value,Column, CountInColumn),
-    CountInColumn > 1.
+    notUniqueInList(Value, Column),
+    !.
 
+notUniqueInList(Value, List):-
+    select(Value, List, Rest),  
+    member(Value, Rest).
 
 getColumn(Board, Y, Column) :-
     maplist(nth0(Y), Board, Column).
-
-
-count(Element, List,Count) :- 
-    aggregate_all(count, 
-        member(Element, List), 
-        Count).
-
-%could be more efficient i think
-numberIsUniqueInRow(Number, Row):-
-    count(Number,Row,
-     Count),
-    Count <2.
 
 % gives you the indices as pairs (X,Y) that have a nonzero value at the board
 allPositions(Board, Positions) :-
