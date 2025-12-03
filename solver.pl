@@ -71,9 +71,8 @@ isPossible(Board, Solution) :-
     allPositionsWithValue(Board, Positions),
     maplist(checkPosition(Board, Solution), Positions).
 
-checkPosition(Board, Solution, (X,Y,_)) :-
+checkPosition(Board, Solution, (X,Y,BoardValue)) :-
     elementAt(Solution, X, Y, SolutionValue),
-    elementAt(Board, X, Y, BoardValue),
     validCell(Board, X, Y, SolutionValue, BoardValue).
 
 % A cell is valid if it keeps its original value or becomes 0 if allowed
