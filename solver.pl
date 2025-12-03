@@ -20,8 +20,6 @@ solvedPuzzle(
 	[[4, 3, 1, 2], [0, 4, 2, 0], [2, 1, 0, 4], [0, 2, 4, 1]] 
 ).
 
-triv([1,1]).
-
 %https://www.chiark.greenend.org.uk/~sgtatham/puzzles/js/singles.html#5x5dk%23864813841153333
 smallPuzzle([
     [4, 2, 2, 5, 5],
@@ -71,19 +69,18 @@ allPositionsWithValue(Board, PositionsWithValue) :-
 isPossible(Board, Solution) :-
     sameShape(Board,Solution),
     allPositionsWithValue(Board, Positions),
-    maplist(check_position(Board, Solution), Positions).
+    maplist(checkPosition(Board, Solution), Positions).
 
-% check_position(+Board, +Solution, +(X,Y,_))
-check_position(Board, Solution, (X,Y,_)) :-
+checkPosition(Board, Solution, (X,Y,_)) :-
     elementAt(Solution, X, Y, SolutionValue),
     elementAt(Board, X, Y, BoardValue),
-    valid_cell(Board, X, Y, SolutionValue, BoardValue).
+    validCell(Board, X, Y, SolutionValue, BoardValue).
 
 % A cell is valid if it keeps its original value or becomes 0 if allowed
-valid_cell(_, _, _, X, X).
-valid_cell(Board, X, Y, 0, BoardValue):- 
+validCell(_, _, _, X, X).
+validCell(Board, X, Y, 0, BoardValue):- 
     zeroCandidate(Board,(X,Y),BoardValue).
-
+ 
 
 sameShape([], []).
 sameShape([A|As], [B|Bs]) :-
