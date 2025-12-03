@@ -64,27 +64,6 @@ isSolution(Board, Solution) :-
     allNonZeroConnected(Solution).
 
 
-
-% TODO trim the search space somehow. Right now, it generates all possible configurations for black squares in a very stupid way
-% this means, for a board of 5x5 you get 2^(5*5) possibilites. Damn. 
-% And thats actually a small puzzle haha
-% maybe i can only generate it differently: only generate in places that are duplicates
-% because you would never place a black square in a place thatts not a duplicate in the rows and allColumnsValid
-% right????
-
-%This set of predicates ensures the solution has the same shape and numbers in it as the board.
-sameBoard(Board, Solution) :-
-    maplist(sameRow, Board, Solution).
-
-sameRow(RowB, RowS) :-
-    maplist(cellOK, RowB, RowS).
-
-% a cell is ok if it is either the same in the board and solution, or if it is 0 in the solution.
-cellOK(_, 0).
-cellOK(X, X).
-
-
-
 % gives you the indices as pairs (X,Y) that have a nonzero value at the board
 allPositionsWithValue(Board, PositionsWithValue) :-
     findall( (X,Y,V), elementAt(Board,X,Y,V), PositionsWithValue).
