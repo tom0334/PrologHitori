@@ -10,12 +10,17 @@
 
 % https://www.chiark.greenend.org.uk/~sgtatham/puzzles/js/singles.html#4x4de%23722022701905902
 % the actual puzzle
-puzzle(
-	[[4, 3, 1, 2], [2, 4, 2, 4], [2, 1, 1, 4], [4, 2, 4, 1]]
-).
+puzzle([
+    [4, 3, 1, 2], 
+    [2, 4, 2, 4], 
+    [2, 1, 1, 4], 
+    [4, 2, 4, 1]
+]).
 solvedPuzzle(
 	[[4, 3, 1, 2], [0, 4, 2, 0], [2, 1, 0, 4], [0, 2, 4, 1]] 
 ).
+
+triv([1,1]).
 
 %https://www.chiark.greenend.org.uk/~sgtatham/puzzles/js/singles.html#5x5dk%23864813841153333
 smallPuzzle([
@@ -53,7 +58,7 @@ bigPuzzle([
 
 % https://www.chiark.greenend.org.uk/~sgtatham/puzzles/js/singles.html#10x10dk%23410746926154546
 isSolution(Board, Solution) :-
-    sameBoard(Board, Solution),
+    isPossible(Board,Solution),
     allRowsValid(Solution),
     allColumnsValid(Solution),
     allNonZeroConnected(Solution).
@@ -77,6 +82,73 @@ sameRow(RowB, RowS) :-
 % a cell is ok if it is either the same in the board and solution, or if it is 0 in the solution.
 cellOK(_, 0).
 cellOK(X, X).
+
+
+
+% gives you the indices as pairs (X,Y) that have a nonzero value at the board
+allPositionsWithValue(Board, PositionsWithValue) :-
+    findall( (X,Y,V), elementAt(Board,X,Y,V), PositionsWithValue).
+
+isPossible(Board, Solution) :-
+    sameShape(Board,Solution),
+    allPositionsWithValue(Board, Positions),
+    maplist(check_position(Board, Solution), Positions).
+
+% check_position(+Board, +Solution, +(X,Y,_))
+check_position(Board, Solution, (X,Y,_)) :-
+    elementAt(Solution, X, Y, SolutionValue),
+    elementAt(Board, X, Y, BoardValue),
+    valid_cell(Board, X, Y, SolutionValue, BoardValue).
+
+% A cell is valid if it keeps its original value or becomes 0 if allowed
+valid_cell(_, _, _, X, X).
+valid_cell(Board, X, Y, 0, BoardValue):- 
+    zeroCandidate(Board,(X,Y),BoardValue).
+
+
+sameShape([], []).
+sameShape([A|As], [B|Bs]) :-
+    same_length(A, B),
+    sameShape(As, Bs).
+
+
+zeroCandidate(Board, (X,Y), Value) :-
+    nonUniqueInRow(Board, (X,Y), Value),
+    !.
+zeroCandidate(Board, (X,Y), Value) :-
+    nonUniqueInColumn(Board, (X,Y), Value),
+    !.
+
+nonUniqueInRow(Board, (_,Y),Value):-
+    getRow(Board,Y,Row),
+    count(Value, Row, CountInRow),
+    CountInRow > 1.
+
+nonUniqueInColumn(Board,(X,_),Value):-
+    getColumn(Board,X,Column),
+    count(Value,Column, CountInColumn),
+    CountInColumn > 1.
+
+
+getColumn(Board, Y, Column) :-
+    maplist(nth0(Y), Board, Column).
+
+
+count(Element, List,Count) :- 
+    aggregate_all(count, 
+        member(Element, List), 
+        Count).
+
+%could be more efficient i think
+numberIsUniqueInRow(Number, Row):-
+    count(Number,Row,
+     Count),
+    Count <2.
+
+% gives you the indices as pairs (X,Y) that have a nonzero value at the board
+allPositions(Board, Positions) :-
+    findall( (X,Y), elementAt(Board,X,Y,_), Positions).
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
