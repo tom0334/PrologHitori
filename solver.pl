@@ -10,9 +10,12 @@
 
 % https://www.chiark.greenend.org.uk/~sgtatham/puzzles/js/singles.html#4x4de%23722022701905902
 % the actual puzzle
-puzzle(
-	[[4, 3, 1, 2], [2, 4, 2, 4], [2, 1, 1, 4], [4, 2, 4, 1]]
-).
+puzzle([
+    [4, 3, 1, 2], 
+    [2, 4, 2, 4], 
+    [2, 1, 1, 4], 
+    [4, 2, 4, 1]
+]).
 solvedPuzzle(
 	[[4, 3, 1, 2], [0, 4, 2, 0], [2, 1, 0, 4], [0, 2, 4, 1]] 
 ).
@@ -53,30 +56,58 @@ bigPuzzle([
 
 % https://www.chiark.greenend.org.uk/~sgtatham/puzzles/js/singles.html#10x10dk%23410746926154546
 isSolution(Board, Solution) :-
-    sameBoard(Board, Solution),
+    isPossible(Board,Solution),
     allRowsValid(Solution),
     allColumnsValid(Solution),
     allNonZeroConnected(Solution).
 
 
+% gives you the indices as pairs (X,Y) that have a nonzero value at the board
+allPositionsWithValue(Board, PositionsWithValue) :-
+    findall( (X,Y,V), elementAt(Board,X,Y,V), PositionsWithValue).
 
-% TODO trim the search space somehow. Right now, it generates all possible configurations for black squares in a very stupid way
-% this means, for a board of 5x5 you get 2^(5*5) possibilites. Damn. 
-% And thats actually a small puzzle haha
-% maybe i can only generate it differently: only generate in places that are duplicates
-% because you would never place a black square in a place thatts not a duplicate in the rows and allColumnsValid
-% right????
+isPossible(Board, Solution) :-
+    sameShape(Board,Solution),
+    allPositionsWithValue(Board, Positions),
+    maplist(checkPosition(Board, Solution), Positions).
 
-%This set of predicates ensures the solution has the same shape and numbers in it as the board.
-sameBoard(Board, Solution) :-
-    maplist(sameRow, Board, Solution).
+checkPosition(Board, Solution, (X,Y,_)) :-
+    elementAt(Solution, X, Y, SolutionValue),
+    elementAt(Board, X, Y, BoardValue),
+    validCell(Board, X, Y, SolutionValue, BoardValue).
 
-sameRow(RowB, RowS) :-
-    maplist(cellOK, RowB, RowS).
+% A cell is valid if it keeps its original value or becomes 0 if allowed
+validCell(_, _, _, X, X).
+validCell(Board, X, Y, 0, BoardValue):- 
+    zeroCandidate(Board,(X,Y),BoardValue).
+ 
 
-% a cell is ok if it is either the same in the board and solution, or if it is 0 in the solution.
-cellOK(_, 0).
-cellOK(X, X).
+sameShape([], []).
+sameShape([A|As], [B|Bs]) :-
+    same_length(A, B),
+    sameShape(As, Bs).
+
+
+zeroCandidate(Board, (_,Y), Value) :-
+    getRow(Board,Y,Row),
+    notUniqueInList(Value, Row),
+    !.
+zeroCandidate(Board, (X,_), Value) :-
+    getColumn(Board,X,Column),
+    notUniqueInList(Value, Column),
+    !.
+
+notUniqueInList(Value, List):-
+    select(Value, List, Rest),  
+    member(Value, Rest).
+
+getColumn(Board, Y, Column) :-
+    maplist(nth0(Y), Board, Column).
+
+% gives you the indices as pairs (X,Y) that have a nonzero value at the board
+allPositions(Board, Positions) :-
+    findall( (X,Y), elementAt(Board,X,Y,_), Positions).
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
