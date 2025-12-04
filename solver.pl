@@ -75,10 +75,16 @@ checkPosition(Board, Solution, (X,Y,BoardValue)) :-
     elementAt(Solution, X, Y, SolutionValue),
     validCell(Board, X, Y, SolutionValue, BoardValue).
 
+
+%The order matters a lot here. First line is seen as the first option for the solver
+% that means we initially make it zero if its double in a row/column.
+% that was faster for all cases i tested.
+%TODO: add additional constraints to make the order in which the solver considers options in the search space more optimal
 % A cell is valid if it keeps its original value or becomes 0 if allowed
-validCell(_, _, _, X, X).
 validCell(Board, X, Y, 0, BoardValue):- 
     zeroCandidate(Board,(X,Y),BoardValue).
+validCell(_, _, _, X, X).
+
  
 
 sameShape([], []).
