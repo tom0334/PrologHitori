@@ -139,21 +139,16 @@ allPositions(Board, Positions) :-
 allRowsValid(Board) :- maplist(isListValid, Board).
 
 allColumnsValid(Board) :- 
-	transpose(Board, Transposed), 
-	maplist(isListValid,Transposed).
+    transpose(Board, Transposed), 
+    maplist(isListValid,Transposed).
 
-% this is a simple way to check if all elements are unique:
-simpleIsUnique(List):- is_set(List).
-
-% for the case where we want to check if the numbers are unique in the list, but multiple black squares are okay, we can use this to get the list without zeros:
-listWithoutZeros(List, R) :- subtract(List, [0], R).
 
 % then we can check wether a row or column is valid using this.
 % A row or column is valid all the numbers are uniqe, but any amount of zeros is allowed:
 isListValid(X) :- 
     \+ nextto(0,0,X), %from std list, nextTo(X,Y,List) is true if x is next to y in List
-    listWithoutZeros(X, ListWithoutZeros), 
-    simpleIsUnique(ListWithoutZeros).
+    subtract(X, [0], ListWithoutZeros), % removes the zeros from the list
+    is_set(ListWithoutZeros). %checks if a list contains duplicates
  
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
