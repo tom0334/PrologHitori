@@ -99,10 +99,10 @@ validCellFast((X,Y,V),DupsInRows,DupsInColumns,0):- isDup((X,Y,V),DupsInRows, Du
 validCellFast((_,_,V),_,_,V).
 
 isDup((X,Y,V), DupsInRows, _):-
-    member((X,Y,V),DupsInRows), !.
+    ord_memberchk((X,Y,V),DupsInRows), !.
 
 isDup((X,Y,V), _, DupsInColumns):-
-    member((X,Y,V),DupsInColumns), !.
+    ord_memberchk((X,Y,V),DupsInColumns), !.
 
 
 checkPosition(Board, Solution, (X,Y,BoardValue)) :-
@@ -204,9 +204,10 @@ positionIsDuplicateAccordingToDict(Dict, (_,_,V)) :-
     Count > 1.
 
 % Call findDuplicatePositions on each row
-duplicatesInAll(RowsOrColumns, AllDuplicates) :-
+duplicatesInAll(RowsOrColumns, AllDuplicatesSet) :-
     maplist(findDuplicatePositions, RowsOrColumns, DuplicatesPerSubList),
-    append(DuplicatesPerSubList, AllDuplicates).
+    append(DuplicatesPerSubList, AllDuplicatesList),
+    list_to_ord_set(AllDuplicatesList, AllDuplicatesSet).
 
 duplicatesInAllRows(AllPositions, DupsInRows):-
     allRows(AllPositions, AllRows),
@@ -282,6 +283,8 @@ adjacentWithinPostions(Positions, From, Adjacent):-
     adjacentPos(From, Adjacent), 
     member(Adjacent, Positions).
 
+
+%Todo see if this is a bottleneck and if we can speed it up using sets or something
 %allAdjacent is a list of all the positions that are adjecent to From that can be found in the list Positions
 findAllAdjacentWithinPostions(From, Positions, AllAdjacent) :-
     findall(Adjacent, 
