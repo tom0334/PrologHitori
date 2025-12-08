@@ -85,7 +85,25 @@ allPositionsWithValue(Board, PositionsWithValue) :-
 isPossible(Board, Solution) :-
     sameShape(Board,Solution),
     allPositionsWithValue(Board, Positions),
-    maplist(checkPosition(Board, Solution), Positions).
+    duplicatesInAllRows(Positions, DupsInRows),
+    duplicatesInAllColumns(Positions, DupsInColumns),
+    maplist(checkPositionFast(DupsInRows,DupsInColumns, Solution), Positions).
+
+
+checkPositionFast(DupsInRows, DupsInColumns, Solution, (X,Y,V)):-
+    elementAt(Solution, X, Y, SolutionValue), %really need to get rid of this somehow?
+    validCellFast((X,Y,V),DupsInRows,DupsInColumns,SolutionValue).
+
+
+validCellFast((X,Y,V),DupsInRows,DupsInColumns,0):- isDup((X,Y,V),DupsInRows, DupsInColumns).
+validCellFast((_,_,V),_,_,V).
+
+isDup((X,Y,V), DupsInRows, _):-
+    member((X,Y,V),DupsInRows), !.
+
+isDup((X,Y,V), _, DupsInColumns):-
+    member((X,Y,V),DupsInColumns), !.
+
 
 checkPosition(Board, Solution, (X,Y,BoardValue)) :-
     elementAt(Solution, X, Y, SolutionValue),
@@ -129,6 +147,74 @@ getColumn(Board, Y, Column) :-
 allPositions(Board, Positions) :-
     findall( (X,Y), elementAt(Board,X,Y,_), Positions).
 
+
+
+
+%%%%%%%%%%
+%creates a dictionary that has the following values:
+% key: all elements in the list. 
+% Value: the number of times that number occurs in the lists
+% so countInList([1,1,1,4,7], Result) gives {1:3, 4:1, 7:1}
+%exept that the list should have positions 
+countInList(PositionList, ResultDict):-
+    dict_create(EmptyDict, _, []),
+    countOccurancesIn(PositionList,EmptyDict, ResultDict).
+
+countOccurancesIn([], Result, Result).
+countOccurancesIn([(_,_,V)|Tail], CountMap, Result):-
+    OldCount = CountMap.get(V, 0),   % 0 is default value, if its not in the map yet. We will bump that up to 0, so we only get 1 if its in there multiple times.
+    NewCount is OldCount + 1, % 
+    put_dict(V, CountMap, NewCount, NewDict),
+    countOccurancesIn(Tail, NewDict, Result).
+
+positionIsInRowY(Y, (_, RY, _)) :-
+    RY = Y.
+
+positionIsInColumnX(X, (CX, _, _)) :-
+    CX = X.
+
+onlyPositionsInRowY(Positions, Y, Filtered) :-
+    include(positionIsInRowY(Y), Positions, Filtered).
+
+onlyPositionsInColumnX(Positions, X, Filtered) :-
+    include(positionIsInColumnX(X), Positions, Filtered).
+
+%Todo find a better way to do this, its inefficent
+%Probs good enough if you only call it once
+%Just gives you 0 1 2 3if your board is size 4.
+% assumes the board is square!
+allIndices(Positions, Sorted) :-
+    findall(X, member((X, _, _), Positions), AllIndices),
+    sort(AllIndices, Sorted).
+
+allColumns(Positions, ColumnList) :-
+    allIndices(Positions, ColumnIndices),  % get 0,1,2,3...
+    maplist(onlyPositionsInColumnX(Positions), ColumnIndices, ColumnList).
+
+allRows(Positions, RowList):-
+    allIndices(Positions, RowIndices),  % get 0,1,2,3...
+    maplist(onlyPositionsInRowY(Positions), RowIndices, RowList).
+
+findDuplicatePositions(PositionList, DuplicatesOnly):-
+    countInList(PositionList, Dict),
+    include(positionIsDuplicateAccordingToDict(Dict), PositionList, DuplicatesOnly).
+
+positionIsDuplicateAccordingToDict(Dict, (_,_,V)) :-
+    get_dict(V, Dict, Count),
+    Count > 1.
+
+% Call findDuplicatePositions on each row
+duplicatesInAll(RowsOrColumns, AllDuplicates) :-
+    maplist(findDuplicatePositions, RowsOrColumns, DuplicatesPerSubList),
+    append(DuplicatesPerSubList, AllDuplicates).
+
+duplicatesInAllRows(AllPositions, DupsInRows):-
+    allRows(AllPositions, AllRows),
+    duplicatesInAll(AllRows,DupsInRows).
+
+duplicatesInAllColumns(AllPositions, DupsInColumns):-
+    allColumns(AllPositions, AllColumns),
+    duplicatesInAll(AllColumns,DupsInColumns).
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
