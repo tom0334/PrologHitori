@@ -120,26 +120,17 @@ validCellFast((X,Y,V),DupsInRowsOnly,_,_,0):-
 validCellFast((X,Y,V),_,DupsInColumnsOnly,_,0):- 
     ord_memberchk((X,Y,V),DupsInColumnsOnly).
 
-
-
 sameShape([], []).
 sameShape([A|As], [B|Bs]) :-
     same_length(A, B),
     sameShape(As, Bs).
 
-% gives you the indices as pairs (X,Y) that have a nonzero value at the board
-allPositions(Board, Positions) :-
-    findall( (X,Y), elementAt(Board,X,Y,_), Positions).
-
-
-
-
+% Finding duplicates in a list
 %%%%%%%%%%
 %creates a dictionary that has the following values:
-% key: all elements in the list. 
-% Value: the number of times that number occurs in the lists
-% so countInList([1,1,1,4,7], Result) gives {1:3, 4:1, 7:1}
-%exept that the list should have positions 
+% key: the value of the position
+% Value: the number of times that number occurs in the list
+% so countInList([1,1,1,4,7], Result) gives {1:3, 4:1, 7:1} 
 countInList(PositionList, ResultDict):-
     dict_create(EmptyDict, _, []),
     countOccurancesIn(PositionList,EmptyDict, ResultDict).
@@ -179,6 +170,10 @@ allRows(Positions, RowList):-
     allIndices(Positions, RowIndices),  % get 0,1,2,3...
     maplist(onlyPositionsInRowY(Positions), RowIndices, RowList).
 
+
+%Finding duplicate positions in the board
+%%%%%%%%%%
+
 findDuplicatePositions(PositionList, DuplicatesOnly):-
     countInList(PositionList, Dict),
     include(positionIsDuplicateAccordingToDict(Dict), PositionList, DuplicatesOnly).
@@ -187,7 +182,19 @@ positionIsDuplicateAccordingToDict(Dict, (_,_,V)) :-
     get_dict(V, Dict, Count),
     Count > 1.
 
-% Call findDuplicatePositions on each row
+%Finds the duplicate positions in list of ALL positions.
+% these duplicates will be split over 3 sets:
+    % those duplicate ONLY in their column
+    % those duplicate ONLY in their Rows
+    % those DUPLICATE IN BOTH their row and column
+allDuplicateSets(AllPositions, RowOnly, ColOnly, InBoth) :-
+    duplicatesInAllRows(AllPositions, DupsInRows),
+    duplicatesInAllColumns(AllPositions, DupsInColumns),
+    ord_intersection(DupsInRows, DupsInColumns, InBoth),
+    ord_subtract(DupsInRows, InBoth, RowOnly),
+    ord_subtract(DupsInColumns, InBoth, ColOnly).
+
+%finds all duplicates in a list of positions, returns ordered set
 duplicatesInAll(RowsOrColumns, AllDuplicatesSet) :-
     maplist(findDuplicatePositions, RowsOrColumns, DuplicatesPerSubList),
     append(DuplicatesPerSubList, AllDuplicatesList),
@@ -200,14 +207,6 @@ duplicatesInAllRows(AllPositions, DupsInRows):-
 duplicatesInAllColumns(AllPositions, DupsInColumns):-
     allColumns(AllPositions, AllColumns),
     duplicatesInAll(AllColumns,DupsInColumns).
-
-allDuplicateSets(AllPositions, RowOnly, ColOnly, InBoth) :-
-    duplicatesInAllRows(AllPositions, DupsInRows),
-    duplicatesInAllColumns(AllPositions, DupsInColumns),
-    ord_intersection(DupsInRows, DupsInColumns, InBoth),
-    ord_subtract(DupsInRows, InBoth, RowOnly),
-    ord_subtract(DupsInColumns, InBoth, ColOnly).
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % VALID ROW AND COLUMN CONSTRAINT: (no duplicates)
