@@ -39,6 +39,19 @@ mediumPuzzle([
     [1, 6, 2, 4, 5, 3]
 ]).
 
+mediumBigPuzzle(
+[
+  [1,4,5,7,2,4,1,5],
+  [8,1,7,2,4,3,5,3],
+  [5,8,5,8,3,3,4,1],
+  [2,8,3,1,3,4,6,8],
+  [5,6,2,1,8,1,5,3],
+  [1,6,4,8,6,8,3,4],
+  [8,3,1,5,1,8,2,4],
+  [4,2,3,3,1,5,1,7]
+]
+).
+
 % https://www.chiark.greenend.org.uk/~sgtatham/puzzles/js/singles.html#10x10dk%23410746926154546
 bigPuzzle([
     [5, 10, 7, 9, 6, 6, 8, 1, 10, 3],
@@ -68,8 +81,6 @@ bigPuzzle([
 % maybe it is even better if you make it a list of lists, so you have each row seperately.
 
 
-
-
 % https://www.chiark.greenend.org.uk/~sgtatham/puzzles/js/singles.html#10x10dk%23410746926154546
 isSolution(Board, Solution) :-
     isPossible(Board,Solution),
@@ -85,51 +96,117 @@ allPositionsWithValue(Board, PositionsWithValue) :-
 isPossible(Board, Solution) :-
     sameShape(Board,Solution),
     allPositionsWithValue(Board, Positions),
-    maplist(checkPosition(Board, Solution), Positions).
+    allDuplicateSets(Positions, RowOnly, ColOnly, InBoth),
+    maplist(checkPositionFast(RowOnly,ColOnly,InBoth, Solution), Positions).
 
-checkPosition(Board, Solution, (X,Y,BoardValue)) :-
-    elementAt(Solution, X, Y, SolutionValue),
-    validCell(Board, X, Y, SolutionValue, BoardValue).
 
+checkPositionFast(DupsInRows, DupsInColumns,InBoth, Solution, (X,Y,V)):-
+    elementAt(Solution, X, Y, SolutionValue), %really need to get rid of this somehow?
+    validCellFast((X,Y,V),DupsInRows,DupsInColumns, InBoth, SolutionValue).
 
 %The order matters a lot here. First line is seen as the first option for the solver
 % that means we initially make it zero if its double in a row/column.
 % that was faster for all cases i tested.
 %TODO: add additional constraints to make the order in which the solver considers options in the search space more optimal
 % A cell is valid if it keeps its original value or becomes 0 if allowed
-validCell(Board, X, Y, 0, BoardValue):- 
-    zeroCandidate(Board,(X,Y),BoardValue).
-validCell(_, _, _, X, X).
+validCellFast((X,Y,V),_,_,DupsInBoth,0):- 
+    ord_memberchk((X,Y,V),DupsInBoth).
 
- 
+validCellFast((_,_,V),_,_,_,V).
+
+validCellFast((X,Y,V),DupsInRowsOnly,_,_,0):- 
+    ord_memberchk((X,Y,V),DupsInRowsOnly).
+
+validCellFast((X,Y,V),_,DupsInColumnsOnly,_,0):- 
+    ord_memberchk((X,Y,V),DupsInColumnsOnly).
 
 sameShape([], []).
 sameShape([A|As], [B|Bs]) :-
     same_length(A, B),
     sameShape(As, Bs).
 
+% Finding duplicates in a list
+%%%%%%%%%%
+%creates a dictionary that has the following values:
+% key: the value of the position
+% Value: the number of times that number occurs in the list
+% so countInList([1,1,1,4,7], Result) gives {1:3, 4:1, 7:1} 
+countInList(PositionList, ResultDict):-
+    dict_create(EmptyDict, _, []),
+    countOccurancesIn(PositionList,EmptyDict, ResultDict).
 
-zeroCandidate(Board, (_,Y), Value) :-
-    getRow(Board,Y,Row),
-    notUniqueInList(Value, Row),
-    !.
-zeroCandidate(Board, (X,_), Value) :-
-    getColumn(Board,X,Column),
-    notUniqueInList(Value, Column),
-    !.
+countOccurancesIn([], Result, Result).
+countOccurancesIn([(_,_,V)|Tail], CountMap, Result):-
+    OldCount = CountMap.get(V, 0),   % 0 is default value, if its not in the map yet. We will bump that up to 0, so we only get 1 if its in there multiple times.
+    NewCount is OldCount + 1, % 
+    put_dict(V, CountMap, NewCount, NewDict),
+    countOccurancesIn(Tail, NewDict, Result).
 
-notUniqueInList(Value, List):-
-    select(Value, List, Rest),  
-    member(Value, Rest).
+positionIsInRowY(Y, (_, RY, _)) :-
+    RY = Y.
 
-getColumn(Board, Y, Column) :-
-    maplist(nth0(Y), Board, Column).
+positionIsInColumnX(X, (CX, _, _)) :-
+    CX = X.
 
-% gives you the indices as pairs (X,Y) that have a nonzero value at the board
-allPositions(Board, Positions) :-
-    findall( (X,Y), elementAt(Board,X,Y,_), Positions).
+onlyPositionsInRowY(Positions, Y, Filtered) :-
+    include(positionIsInRowY(Y), Positions, Filtered).
+
+onlyPositionsInColumnX(Positions, X, Filtered) :-
+    include(positionIsInColumnX(X), Positions, Filtered).
+
+%Todo find a better way to do this, its inefficent
+%Probs good enough if you only call it once
+%Just gives you 0 1 2 3if your board is size 4.
+% assumes the board is square!
+allIndices(Positions, Sorted) :-
+    findall(X, member((X, _, _), Positions), AllIndices),
+    sort(AllIndices, Sorted).
+
+allColumns(Positions, ColumnList) :-
+    allIndices(Positions, ColumnIndices),  % get 0,1,2,3...
+    maplist(onlyPositionsInColumnX(Positions), ColumnIndices, ColumnList).
+
+allRows(Positions, RowList):-
+    allIndices(Positions, RowIndices),  % get 0,1,2,3...
+    maplist(onlyPositionsInRowY(Positions), RowIndices, RowList).
 
 
+%Finding duplicate positions in the board
+%%%%%%%%%%
+
+findDuplicatePositions(PositionList, DuplicatesOnly):-
+    countInList(PositionList, Dict),
+    include(positionIsDuplicateAccordingToDict(Dict), PositionList, DuplicatesOnly).
+
+positionIsDuplicateAccordingToDict(Dict, (_,_,V)) :-
+    get_dict(V, Dict, Count),
+    Count > 1.
+
+%Finds the duplicate positions in list of ALL positions.
+% these duplicates will be split over 3 sets:
+    % those duplicate ONLY in their column
+    % those duplicate ONLY in their Rows
+    % those DUPLICATE IN BOTH their row and column
+allDuplicateSets(AllPositions, RowOnly, ColOnly, InBoth) :-
+    duplicatesInAllRows(AllPositions, DupsInRows),
+    duplicatesInAllColumns(AllPositions, DupsInColumns),
+    ord_intersection(DupsInRows, DupsInColumns, InBoth),
+    ord_subtract(DupsInRows, InBoth, RowOnly),
+    ord_subtract(DupsInColumns, InBoth, ColOnly).
+
+%finds all duplicates in a list of positions, returns ordered set
+duplicatesInAll(RowsOrColumns, AllDuplicatesSet) :-
+    maplist(findDuplicatePositions, RowsOrColumns, DuplicatesPerSubList),
+    append(DuplicatesPerSubList, AllDuplicatesList),
+    list_to_ord_set(AllDuplicatesList, AllDuplicatesSet).
+
+duplicatesInAllRows(AllPositions, DupsInRows):-
+    allRows(AllPositions, AllRows),
+    duplicatesInAll(AllRows,DupsInRows).
+
+duplicatesInAllColumns(AllPositions, DupsInColumns):-
+    allColumns(AllPositions, AllColumns),
+    duplicatesInAll(AllColumns,DupsInColumns).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % VALID ROW AND COLUMN CONSTRAINT: (no duplicates)
@@ -196,6 +273,8 @@ adjacentWithinPostions(Positions, From, Adjacent):-
     adjacentPos(From, Adjacent), 
     member(Adjacent, Positions).
 
+
+%Todo see if this is a bottleneck and if we can speed it up using sets or something
 %allAdjacent is a list of all the positions that are adjecent to From that can be found in the list Positions
 findAllAdjacentWithinPostions(From, Positions, AllAdjacent) :-
     findall(Adjacent, 
