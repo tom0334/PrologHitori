@@ -96,17 +96,18 @@ checkPositionFast(DupsInRows, DupsInColumns,InBoth, Solution, (X,Y,V)):-
 % that was faster for all cases i tested.
 %TODO: add additional constraints to make the order in which the solver considers options in the search space more optimal
 % A cell is valid if it keeps its original value or becomes 0 if allowed
-validCellFast((X,Y,V),DupsInRows,DupsInColumns,InBoth,0):- isDup((X,Y,V),DupsInRows, DupsInColumns,InBoth).
+validCellFast((X,Y,V),_,_,DupsInBoth,0):- 
+    ord_memberchk((X,Y,V),DupsInBoth).
+
 validCellFast((_,_,V),_,_,_,V).
 
-isDup((X,Y,V), _, _,InBoth):-
-    ord_memberchk((X,Y,V),InBoth), !.
+validCellFast((X,Y,V),DupsInRowsOnly,_,_,0):- 
+    ord_memberchk((X,Y,V),DupsInRowsOnly).
 
-isDup((X,Y,V), DupsInRows, _,_):-
-    ord_memberchk((X,Y,V),DupsInRows), !.
+validCellFast((X,Y,V),_,DupsInColumnsOnly,_,0):- 
+    ord_memberchk((X,Y,V),DupsInColumnsOnly).
 
-isDup((X,Y,V), _, DupsInColumns,_):-
-    ord_memberchk((X,Y,V),DupsInColumns), !.
+
 
 sameShape([], []).
 sameShape([A|As], [B|Bs]) :-
