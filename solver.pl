@@ -68,8 +68,6 @@ bigPuzzle([
 % maybe it is even better if you make it a list of lists, so you have each row seperately.
 
 
-
-
 % https://www.chiark.greenend.org.uk/~sgtatham/puzzles/js/singles.html#10x10dk%23410746926154546
 isSolution(Board, Solution) :-
     isPossible(Board,Solution),
@@ -94,7 +92,11 @@ checkPositionFast(DupsInRows, DupsInColumns, Solution, (X,Y,V)):-
     elementAt(Solution, X, Y, SolutionValue), %really need to get rid of this somehow?
     validCellFast((X,Y,V),DupsInRows,DupsInColumns,SolutionValue).
 
-
+%The order matters a lot here. First line is seen as the first option for the solver
+% that means we initially make it zero if its double in a row/column.
+% that was faster for all cases i tested.
+%TODO: add additional constraints to make the order in which the solver considers options in the search space more optimal
+% A cell is valid if it keeps its original value or becomes 0 if allowed
 validCellFast((X,Y,V),DupsInRows,DupsInColumns,0):- isDup((X,Y,V),DupsInRows, DupsInColumns).
 validCellFast((_,_,V),_,_,V).
 
@@ -104,44 +106,10 @@ isDup((X,Y,V), DupsInRows, _):-
 isDup((X,Y,V), _, DupsInColumns):-
     ord_memberchk((X,Y,V),DupsInColumns), !.
 
-
-checkPosition(Board, Solution, (X,Y,BoardValue)) :-
-    elementAt(Solution, X, Y, SolutionValue),
-    validCell(Board, X, Y, SolutionValue, BoardValue).
-
-
-%The order matters a lot here. First line is seen as the first option for the solver
-% that means we initially make it zero if its double in a row/column.
-% that was faster for all cases i tested.
-%TODO: add additional constraints to make the order in which the solver considers options in the search space more optimal
-% A cell is valid if it keeps its original value or becomes 0 if allowed
-validCell(Board, X, Y, 0, BoardValue):- 
-    zeroCandidate(Board,(X,Y),BoardValue).
-validCell(_, _, _, X, X).
-
- 
-
 sameShape([], []).
 sameShape([A|As], [B|Bs]) :-
     same_length(A, B),
     sameShape(As, Bs).
-
-
-zeroCandidate(Board, (_,Y), Value) :-
-    getRow(Board,Y,Row),
-    notUniqueInList(Value, Row),
-    !.
-zeroCandidate(Board, (X,_), Value) :-
-    getColumn(Board,X,Column),
-    notUniqueInList(Value, Column),
-    !.
-
-notUniqueInList(Value, List):-
-    select(Value, List, Rest),  
-    member(Value, Rest).
-
-getColumn(Board, Y, Column) :-
-    maplist(nth0(Y), Board, Column).
 
 % gives you the indices as pairs (X,Y) that have a nonzero value at the board
 allPositions(Board, Positions) :-
