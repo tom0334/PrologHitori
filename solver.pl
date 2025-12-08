@@ -83,27 +83,29 @@ allPositionsWithValue(Board, PositionsWithValue) :-
 isPossible(Board, Solution) :-
     sameShape(Board,Solution),
     allPositionsWithValue(Board, Positions),
-    duplicatesInAllRows(Positions, DupsInRows),
-    duplicatesInAllColumns(Positions, DupsInColumns),
-    maplist(checkPositionFast(DupsInRows,DupsInColumns, Solution), Positions).
+    allDuplicateSets(Positions, RowOnly, ColOnly, InBoth),
+    maplist(checkPositionFast(RowOnly,ColOnly,InBoth, Solution), Positions).
 
 
-checkPositionFast(DupsInRows, DupsInColumns, Solution, (X,Y,V)):-
+checkPositionFast(DupsInRows, DupsInColumns,InBoth, Solution, (X,Y,V)):-
     elementAt(Solution, X, Y, SolutionValue), %really need to get rid of this somehow?
-    validCellFast((X,Y,V),DupsInRows,DupsInColumns,SolutionValue).
+    validCellFast((X,Y,V),DupsInRows,DupsInColumns, InBoth, SolutionValue).
 
 %The order matters a lot here. First line is seen as the first option for the solver
 % that means we initially make it zero if its double in a row/column.
 % that was faster for all cases i tested.
 %TODO: add additional constraints to make the order in which the solver considers options in the search space more optimal
 % A cell is valid if it keeps its original value or becomes 0 if allowed
-validCellFast((X,Y,V),DupsInRows,DupsInColumns,0):- isDup((X,Y,V),DupsInRows, DupsInColumns).
-validCellFast((_,_,V),_,_,V).
+validCellFast((X,Y,V),DupsInRows,DupsInColumns,InBoth,0):- isDup((X,Y,V),DupsInRows, DupsInColumns,InBoth).
+validCellFast((_,_,V),_,_,_,V).
 
-isDup((X,Y,V), DupsInRows, _):-
+isDup((X,Y,V), _, _,InBoth):-
+    ord_memberchk((X,Y,V),InBoth), !.
+
+isDup((X,Y,V), DupsInRows, _,_):-
     ord_memberchk((X,Y,V),DupsInRows), !.
 
-isDup((X,Y,V), _, DupsInColumns):-
+isDup((X,Y,V), _, DupsInColumns,_):-
     ord_memberchk((X,Y,V),DupsInColumns), !.
 
 sameShape([], []).
@@ -184,6 +186,13 @@ duplicatesInAllRows(AllPositions, DupsInRows):-
 duplicatesInAllColumns(AllPositions, DupsInColumns):-
     allColumns(AllPositions, AllColumns),
     duplicatesInAll(AllColumns,DupsInColumns).
+
+allDuplicateSets(AllPositions, RowOnly, ColOnly, InBoth) :-
+    duplicatesInAllRows(AllPositions, DupsInRows),
+    duplicatesInAllColumns(AllPositions, DupsInColumns),
+    ord_intersection(DupsInRows, DupsInColumns, InBoth),
+    ord_subtract(DupsInRows, InBoth, RowOnly),
+    ord_subtract(DupsInColumns, InBoth, ColOnly).
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
