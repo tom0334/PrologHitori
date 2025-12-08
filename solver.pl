@@ -54,6 +54,22 @@ bigPuzzle([
 ]).
 
 
+
+%Todo THIS WILL HELP A LOT I THINK
+%make DICT of positions that are duplicate in its row 
+% and another DICt of positions that are duplicate in its column.
+%use the dict for O(0) access.
+% that way we can just do something like:
+%validCell(X,Y,0) :- notUniqueInRow(X,Y), notUniqueInColumn(X,Y). %assume these are 0 first   
+%validCell(X,Y,0) :- notUniqueInRow(X,Y).
+%validCell(X,Y,0) :- notuniqueInColumn(X,Y).
+%validCell(_,_,_, _, X, X).
+% we can also later ad contraints to not do two next to each other or something if we have the canditeas easily accesible in a list.
+% maybe it is even better if you make it a list of lists, so you have each row seperately.
+
+
+
+
 % https://www.chiark.greenend.org.uk/~sgtatham/puzzles/js/singles.html#10x10dk%23410746926154546
 isSolution(Board, Solution) :-
     isPossible(Board,Solution),
