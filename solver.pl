@@ -99,7 +99,8 @@ isPossible(Board, Solution) :-
     allDuplicateSets(Positions, RowOnly, ColOnly, InBoth),
     maplist(checkPositionFast(RowOnly,ColOnly,InBoth, Solution), Positions).
 
-
+%todo only consider making elements in rows/columns that are still not okay yet zero somehow
+%todo somehow only allow a number to be zero if its adjecent are not zero somehow, without breaking everything...
 checkPositionFast(DupsInRows, DupsInColumns,InBoth, Solution, (X,Y,V)):-
     elementAt(Solution, X, Y, SolutionValue), %really need to get rid of this somehow?
     validCellFast((X,Y,V),DupsInRows,DupsInColumns, InBoth, SolutionValue).
@@ -154,8 +155,7 @@ onlyPositionsInRowY(Positions, Y, Filtered) :-
 onlyPositionsInColumnX(Positions, X, Filtered) :-
     include(positionIsInColumnX(X), Positions, Filtered).
 
-%Todo find a better way to do this, its inefficent
-%Probs good enough if you only call it once
+%This is not an efficient way to do this, so please dont use this in performance critial parts of the solver
 %Just gives you 0 1 2 3if your board is size 4.
 % assumes the board is square!
 allIndices(Positions, Sorted) :-
@@ -260,18 +260,14 @@ listsHaveSameSize(List1,List2):-
 % gives you all adjecent (X,Y) pairs for a (X,Y) position.
 % use this by calling adjacent((1,1), Pos). Will give (0,1),(2,1), (1,0), (1,2)
 adjacentPos((X1,Y1),(X2,Y2)) :- 
-    (X1 = X2, adjacentNum(Y1,Y2)); 
-    (Y1 = Y2, adjacentNum(X1,X2)).
-
-%can be used like this: adjacentNum(5,X). gives X = 4 and X = 6
-adjacentNum(Num, Adj) :- 
-    Adj is Num + 1; 
-    Adj is Num - 1.
-
+    (X1 = X2, Y1 is Y2 + 1);
+    (X1 = X2, Y1 is Y2 - 1);  
+    (Y1 = Y2,  X1 is X2 + 1);
+    (Y1 = Y2,  X1 is X2 - 1).
 
 adjacentWithinPostions(Positions, From, Adjacent):-
-    adjacentPos(From, Adjacent), 
-    member(Adjacent, Positions).
+    member(Adjacent, Positions),
+    adjacentPos(From, Adjacent).
 
 
 %Todo see if this is a bottleneck and if we can speed it up using sets or something
