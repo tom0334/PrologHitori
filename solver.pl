@@ -96,30 +96,53 @@ allPositionsWithValue(Board, PositionsWithValue) :-
 isPossible(Board, Solution) :-
     sameShape(Board,Solution),
     allPositionsWithValue(Board, Positions),
-    allDuplicateSets(Positions, RowOnly, ColOnly, InBoth),
-    maplist(checkPositionFast(RowOnly,ColOnly,InBoth, Solution), Positions).
+    allDuplicateSets(Positions, RowOnly, ColOnly, InBoth,All),
+    maplist(checkPositionFast(RowOnly,ColOnly,InBoth, All, Solution), Positions).
 
 %todo only consider making elements in rows/columns that are still not okay yet zero somehow
 %todo somehow only allow a number to be zero if its adjecent are not zero somehow, without breaking everything...
-checkPositionFast(DupsInRows, DupsInColumns,InBoth, Solution, (X,Y,V)):-
+checkPositionFast(DupsInRows, DupsInColumns,InBoth, All, Solution, (X,Y,V)):-
     elementAt(Solution, X, Y, SolutionValue), %really need to get rid of this somehow?
-    validCellFast((X,Y,V),DupsInRows,DupsInColumns, InBoth, SolutionValue).
+    validCellFast((X,Y,V),DupsInRows,DupsInColumns, InBoth, All, SolutionValue).
 
 %The order matters a lot here. First line is seen as the first option for the solver
 % that means we initially make it zero if its double in a row/column.
 % that was faster for all cases i tested.
 %TODO: add additional constraints to make the order in which the solver considers options in the search space more optimal
 % A cell is valid if it keeps its original value or becomes 0 if allowed
-validCellFast((X,Y,V),_,_,DupsInBoth,0):- 
+
+
+%Todo refine this. 
+%tries to pick the ones that are NOT next to other ones first.
+validCellFast((X,Y,_),_,_,_,AllPositionsOnly, 0):- 
+    ord_memberchk((X,Y),AllPositionsOnly),
+    notNextToOther((X,Y),AllPositionsOnly).
+
+validCellFast((X,Y,V),_,_,DupsInBoth,_, 0):- 
     ord_memberchk((X,Y,V),DupsInBoth).
 
-validCellFast((_,_,V),_,_,_,V).
+validCellFast((_,_,V),_,_,_,_,V).
 
-validCellFast((X,Y,V),DupsInRowsOnly,_,_,0):- 
-    ord_memberchk((X,Y,V),DupsInRowsOnly).
+validCellFast((X,Y,V),DupsInRows,_,_,_,0):- 
+    ord_memberchk((X,Y,V),DupsInRows).
 
-validCellFast((X,Y,V),_,DupsInColumnsOnly,_,0):- 
-    ord_memberchk((X,Y,V),DupsInColumnsOnly).
+validCellFast((X,Y,V),_,DupsInColumns,_,_,0):- 
+    ord_memberchk((X,Y,V),DupsInColumns).
+
+
+
+notNextToOther((X,Y),AllPositionsOnly):-
+    XNext is X + 1,
+    XPrev is X -1,
+    YNext is Y+1,
+    YPrev is Y-1,
+    \+ ord_memberchk((XNext,Y),AllPositionsOnly),
+    \+ ord_memberchk((XPrev,Y),AllPositionsOnly),
+    \+ ord_memberchk((X,YNext),AllPositionsOnly),
+    \+ ord_memberchk((X,YPrev),AllPositionsOnly).
+
+
+
 
 sameShape([], []).
 sameShape([A|As], [B|Bs]) :-
@@ -187,12 +210,20 @@ positionIsDuplicateAccordingToDict(Dict, (_,_,V)) :-
     % those duplicate ONLY in their column
     % those duplicate ONLY in their Rows
     % those DUPLICATE IN BOTH their row and column
-allDuplicateSets(AllPositions, RowOnly, ColOnly, InBoth) :-
+allDuplicateSets(AllPositions, RowOnly, ColOnly, InBoth,AllWithoutValue) :-
     duplicatesInAllRows(AllPositions, DupsInRows),
     duplicatesInAllColumns(AllPositions, DupsInColumns),
     ord_intersection(DupsInRows, DupsInColumns, InBoth),
     ord_subtract(DupsInRows, InBoth, RowOnly),
-    ord_subtract(DupsInColumns, InBoth, ColOnly).
+    ord_subtract(DupsInColumns, InBoth, ColOnly),
+    ord_union(DupsInRows, DupsInColumns, DupsInAll),
+    convertToValueOnlyPositions(DupsInAll, AllWithoutValue).
+
+stripValue((X,Y,_), (X,Y)).
+
+convertToValueOnlyPositions(PositionsWithValue, Result) :-
+    maplist(stripValue, PositionsWithValue, PositionsWithoutValue),
+    list_to_ord_set(PositionsWithoutValue, Result).
 
 %finds all duplicates in a list of positions, returns ordered set
 duplicatesInAll(RowsOrColumns, AllDuplicatesSet) :-
