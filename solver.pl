@@ -66,83 +66,96 @@ bigPuzzle([
     [4, 6, 7, 1, 9, 7, 10, 3, 1, 7]
 ]).
 
-
-
-%Todo THIS WILL HELP A LOT I THINK
-%make DICT of positions that are duplicate in its row 
-% and another DICt of positions that are duplicate in its column.
-%use the dict for O(0) access.
-% that way we can just do something like:
-%validCell(X,Y,0) :- notUniqueInRow(X,Y), notUniqueInColumn(X,Y). %assume these are 0 first   
-%validCell(X,Y,0) :- notUniqueInRow(X,Y).
-%validCell(X,Y,0) :- notuniqueInColumn(X,Y).
-%validCell(_,_,_, _, X, X).
-% we can also later ad contraints to not do two next to each other or something if we have the canditeas easily accesible in a list.
-% maybe it is even better if you make it a list of lists, so you have each row seperately.
-
-
 % https://www.chiark.greenend.org.uk/~sgtatham/puzzles/js/singles.html#10x10dk%23410746926154546
 isSolution(Board, Solution) :-
-    isPossible(Board,Solution),
-    allRowsValid(Solution),
-    allColumnsValid(Solution),
+    findPossibleSolution(Board, PositionsToZero), 
+    translateToBoard(Board, PositionsToZero, Solution),
     allNonZeroConnected(Solution).
+
+
+findPossibleSolution(Board, PositionsToZero):-
+    allPositionsWithValue(Board, Positions),
+    allRows(Positions, RowList),
+    allColumns(Positions, ColumnList),
+    append(RowList, ColumnList, AllRowsAndColumns),
+    solveAll(AllRowsAndColumns, [], PositionsToZero).
+
+
+solveAll([], Result, Result).
+
+solveAll([Head|Tail], ChosenSoFar, Result):-
+    solveRowOrColumn(ChosenSoFar,SolvedRowOrColumn, Head),
+    solveAll(Tail, SolvedRowOrColumn, Result).
+
+
+solveRowOrColumn(AlreadyZerodInOther, Result, RowOrColumn):-
+    countInList(RowOrColumn, CountMap),
+    include(positionIsDuplicateAccordingToDict(CountMap), RowOrColumn, DuplicatesOnly),
+    recursivelySolveRowOrColumn(AlreadyZerodInOther, CountMap, [], ChosenZeros ,DuplicatesOnly),
+    ord_union(AlreadyZerodInOther, ChosenZeros, Result).
 
 
 % gives you the indices as pairs (X,Y) that have a nonzero value at the board
 allPositionsWithValue(Board, PositionsWithValue) :-
     findall( (X,Y,V), elementAt(Board,X,Y,V), PositionsWithValue).
 
-isPossible(Board, Solution) :-
-    sameShape(Board,Solution),
-    allPositionsWithValue(Board, Positions),
-    allDuplicateSets(Positions, RowOnly, ColOnly, InBoth,All),
-    maplist(checkPositionFast(RowOnly,ColOnly,InBoth, All, Solution), Positions).
-
-%todo only consider making elements in rows/columns that are still not okay yet zero somehow
-%todo somehow only allow a number to be zero if its adjecent are not zero somehow, without breaking everything...
-checkPositionFast(DupsInRows, DupsInColumns,InBoth, All, Solution, (X,Y,V)):-
-    elementAt(Solution, X, Y, SolutionValue), %really need to get rid of this somehow?
-    validCellFast((X,Y,V),DupsInRows,DupsInColumns, InBoth, All, SolutionValue).
-
-%The order matters a lot here. First line is seen as the first option for the solver
-% that means we initially make it zero if its double in a row/column.
-% that was faster for all cases i tested.
-%TODO: add additional constraints to make the order in which the solver considers options in the search space more optimal
-% A cell is valid if it keeps its original value or becomes 0 if allowed
-
-
-%Todo refine this. 
-%tries to pick the ones that are NOT next to other ones first.
-validCellFast((X,Y,_),_,_,_,AllPositionsOnly, 0):- 
-    ord_memberchk((X,Y),AllPositionsOnly),
-    notNextToOther((X,Y),AllPositionsOnly).
-
-validCellFast((X,Y,V),_,_,DupsInBoth,_, 0):- 
-    ord_memberchk((X,Y,V),DupsInBoth).
-
-validCellFast((_,_,V),_,_,_,_,V).
-
-validCellFast((X,Y,V),DupsInRows,_,_,_,0):- 
-    ord_memberchk((X,Y,V),DupsInRows).
-
-validCellFast((X,Y,V),_,DupsInColumns,_,_,0):- 
-    ord_memberchk((X,Y,V),DupsInColumns).
-
-
-
+%TODO THIS IS SLOW, since it needs to convert to only positions.
+% That means it goes to the list every time... Fix that.
 notNextToOther((X,Y),AllPositionsOnly):-
     XNext is X + 1,
     XPrev is X -1,
     YNext is Y+1,
     YPrev is Y-1,
-    \+ ord_memberchk((XNext,Y),AllPositionsOnly),
-    \+ ord_memberchk((XPrev,Y),AllPositionsOnly),
-    \+ ord_memberchk((X,YNext),AllPositionsOnly),
-    \+ ord_memberchk((X,YPrev),AllPositionsOnly).
+    convertToValueOnlyPositions(AllPositionsOnly, AllWithoutValue),
+    \+ ord_memberchk((XNext,Y),AllWithoutValue),
+    \+ ord_memberchk((XPrev,Y),AllWithoutValue),
+    \+ ord_memberchk((X,YNext),AllWithoutValue),
+    \+ ord_memberchk((X,YPrev),AllWithoutValue).
 
 
 
+
+duplicatesInDict(Dict) :- get_dict(_, Dict, V),V > 1. 
+
+%When there are no duplicates left, we are done!
+% TODO: see if we can make this more efficent somehow.... Can we keep this info so we dont have to check every time?
+recursivelySolveRowOrColumn(_,CountMap,Result,Result,_):-
+    \+ duplicatesInDict(CountMap).
+
+recursivelySolveRowOrColumn(AlreadyZerodInOther,CountMap, ChosenZeros, Result,[(X,Y,V)|Tail]) :-
+    CountLeft = CountMap.get(V, 0),
+    CountLeft > 1,
+    notNextToOther((X,Y), ChosenZeros),
+    notNextToOther((X,Y), AlreadyZerodInOther),
+
+    %We can pick this one as a zero!
+    NewCount is CountLeft - 1, 
+    ord_add_element(ChosenZeros, (X,Y,V), NewChosenZeros),
+    put_dict(V, CountMap, NewCount, NewCountMap),
+
+    recursivelySolveRowOrColumn(AlreadyZerodInOther, NewCountMap, NewChosenZeros, Result, Tail).
+
+
+recursivelySolveRowOrColumn(AlreadyZerodInOther,CountMap, ChosenZeros, Result,[(_,_,_)|Tail]) :-
+    recursivelySolveRowOrColumn(AlreadyZerodInOther, CountMap, ChosenZeros, Result, Tail).
+
+
+
+
+%For translating a set of chosen duplicates to a board (list of rows).
+%%%%%%%%%%%%
+translateToBoard(Board, Zerod, Solution):-
+    sameShape(Board, Solution),
+    allPositionsWithValue(Board, Positions),
+    maplist(translatePositionToBoardValue(Solution, Zerod), Positions).
+
+translatePositionToBoardValue(Solution,Zerod,(X,Y,V)):-
+    elementAt(Solution, X, Y, SolutionValue),
+    boardValueOrZerod((X,Y,V),Zerod, SolutionValue).
+
+
+boardValueOrZerod((X,Y,V), Zerod, 0) :- ord_memberchk((X,Y,V), Zerod), !.
+boardValueOrZerod((_,_,V), _, V).
 
 sameShape([], []).
 sameShape([A|As], [B|Bs]) :-
@@ -240,26 +253,6 @@ duplicatesInAllColumns(AllPositions, DupsInColumns):-
     duplicatesInAll(AllColumns,DupsInColumns).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% VALID ROW AND COLUMN CONSTRAINT: (no duplicates)
-
-%This set of predicates can check if all ROWS or COLUMNS are valid. 
-%They are valid if they contain no duplicates, except zeros. Multiple zeros are allowed.
-allRowsValid(Board) :- maplist(isListValid, Board).
-
-allColumnsValid(Board) :- 
-    transpose(Board, Transposed), 
-    maplist(isListValid,Transposed).
-
-
-% then we can check wether a row or column is valid using this.
-% A row or column is valid all the numbers are uniqe, but any amount of zeros is allowed:
-isListValid(X) :- 
-    \+ nextto(0,0,X), %from std list, nextTo(X,Y,List) is true if x is next to y in List
-    subtract(X, [0], ListWithoutZeros), % removes the zeros from the list
-    is_set(ListWithoutZeros). %checks if a list contains duplicates
- 
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % CONNECTED CONSTRAINT
 
 allNonZeroConnected(Board) :-
@@ -276,6 +269,8 @@ elementAt(Board, X,Y,Element):-
     % row is now the entire row, get the element from that:
     nth0(X,Row,Element).
 
+%TODO replace this elementAt call to a get from the set of chosen duplicates
+%should be much faster.
 elementAtIsNotZero(Board,X,Y):-
     elementAt(Board,X,Y,Value),
     Value\= 0.
@@ -338,6 +333,20 @@ dfs([Head|Tail], Positions, Visited, Connected) :-
 % End case: when the queue is empty, you can return the set of visited as the result
 dfs([], _, Visited, Visited).
 
+
+
+%%%%%%%%%%%%%%%%%%%%%
+%Utils
+
+loop_through_list(_File, []) :- !.
+loop_through_list(File, [Head|Tail]) :-
+    write(File, Head),
+    nl(File),
+    loop_through_list(File, Tail).
+
+write_list_to_file(Filename,List) :-
+    open(Filename, write, File),
+    loop_through_list(File, List),
+    close(File).
+
     
-
-
