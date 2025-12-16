@@ -1,12 +1,6 @@
 :- use_module(library(apply)).
 :- use_module(library(lists)).
 
-% This is actually the constraint programming libary
-% using too much from here feels kinda like cheating (?),
-% since im researching Logic Programming.
-% For now its only transpose though I think.
-% TODO make my own transpose if this is an issue
-:- use_module(library(clpfd)). 
 
 % https://www.chiark.greenend.org.uk/~sgtatham/puzzles/js/singles.html#4x4de%23722022701905902
 % the actual puzzle
@@ -112,9 +106,9 @@ notNextToOther((X,Y),AllPositionsOnly):-
     \+ ord_memberchk((X,YPrev),AllWithoutValue).
 
 
-
-
-duplicatesInDict(Dict) :- get_dict(_, Dict, V),V > 1. 
+duplicatesInDict(Dict) :- 
+    get_dict(_, Dict, V),
+    V > 1.  
 
 %When there are no duplicates left, we are done!
 % TODO: see if we can make this more efficent somehow.... Can we keep this info so we dont have to check every time?
