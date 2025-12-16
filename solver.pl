@@ -92,18 +92,16 @@ solveRowOrColumn(AlreadyZerodInOther, Result, RowOrColumn):-
 allPositionsWithValue(Board, PositionsWithValue) :-
     findall( (X,Y,V), elementAt(Board,X,Y,V), PositionsWithValue).
 
-%TODO THIS IS SLOW, since it needs to convert to only positions.
-% That means it goes to the list every time... Fix that.
-notNextToOther((X,Y),AllPositionsOnly):-
+%IMPORTANT: the list in which you check needs to be (X,Y) only, NOT (X,Y,V)
+notNextToOther((X,Y),AllWithoutValue):-
     XNext is X + 1,
     XPrev is X -1,
     YNext is Y+1,
     YPrev is Y-1,
-    convertToValueOnlyPositions(AllPositionsOnly, AllWithoutValue),
-    \+ ord_memberchk((XNext,Y),AllWithoutValue),
-    \+ ord_memberchk((XPrev,Y),AllWithoutValue),
-    \+ ord_memberchk((X,YNext),AllWithoutValue),
-    \+ ord_memberchk((X,YPrev),AllWithoutValue).
+    (\+ ord_memberchk((XNext,Y),AllWithoutValue)),
+    (\+ ord_memberchk((XPrev,Y),AllWithoutValue)),
+    (\+ ord_memberchk((X,YNext),AllWithoutValue)),
+    (\+ ord_memberchk((X,YPrev),AllWithoutValue)).
 
 
 duplicatesInDict(Dict) :- 
@@ -123,7 +121,7 @@ recursivelySolveRowOrColumn(AlreadyZerodInOther,CountMap, ChosenZeros, Result,[(
 
     %We can pick this one as a zero!
     NewCount is CountLeft - 1, 
-    ord_add_element(ChosenZeros, (X,Y,V), NewChosenZeros),
+    ord_add_element(ChosenZeros, (X,Y), NewChosenZeros),
     put_dict(V, CountMap, NewCount, NewCountMap),
 
     recursivelySolveRowOrColumn(AlreadyZerodInOther, NewCountMap, NewChosenZeros, Result, Tail).
@@ -147,7 +145,7 @@ translatePositionToBoardValue(Solution,Zerod,(X,Y,V)):-
     boardValueOrZerod((X,Y,V),Zerod, SolutionValue).
 
 
-boardValueOrZerod((X,Y,V), Zerod, 0) :- ord_memberchk((X,Y,V), Zerod), !.
+boardValueOrZerod((X,Y,_), Zerod, 0) :- ord_memberchk((X,Y), Zerod), !.
 boardValueOrZerod((_,_,V), _, V).
 
 sameShape([], []).
