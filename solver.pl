@@ -84,15 +84,14 @@ findPossibleSolution(Board, PositionsToZero):-
 solveAll([], Result, Result).
 
 solveAll([Head|Tail], ChosenSoFar, Result):-
-    solveRowOrColumn(ChosenSoFar,SolvedRowOrColumn, Head),
-    solveAll(Tail, SolvedRowOrColumn, Result).
-
+    solveRowOrColumn(ChosenSoFar,Chosen, Head),
+    ord_union(ChosenSoFar, Chosen, NewChosen),
+    solveAll(Tail, NewChosen, Result).
 
 solveRowOrColumn(AlreadyZerodInOther, Result, RowOrColumn):-
     countInList(RowOrColumn, CountMap),
     include(positionIsDuplicateAccordingToDict(CountMap), RowOrColumn, DuplicatesOnly),
-    recursivelySolveRowOrColumn(AlreadyZerodInOther, CountMap, [], ChosenZeros ,DuplicatesOnly),
-    ord_union(AlreadyZerodInOther, ChosenZeros, Result).
+    recursivelySolveRowOrColumn(AlreadyZerodInOther, CountMap, [], Result ,DuplicatesOnly).
 
 
 % gives you the indices as pairs (X,Y) that have a nonzero value at the board
