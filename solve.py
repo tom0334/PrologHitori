@@ -13,6 +13,8 @@ import subprocess
 SOLVER_FILE = "solver.pl"
 
 
+outputFile = "solution.out"
+
 if(len(sys.argv) < 2):
 	print("ERROR: no puzzle passed. USAGE: ./solve.py PATH_TO_PUZZLE") 
 	sys.exit(1)
@@ -38,9 +40,12 @@ print(f"Starting {SOLVER_FILE}")
 
 goal = (
     f"Board = {matrix}, "
+    f"N = {n}, "
+    f"Seed = \"{puzzleID}\", "
+    f"OutputFile = \"{outputFile}\","
     f"writeln('PROLOG: Solving...'),"
-    f"time(isSolution(Board, Solution)), "
-    f"writeln(Solution)"
+    f"isSolutionAndWrite(Board,N,Seed, OutputFile, SolutionBoard, _),"
+    f"writeln(SolutionBoard)"
 )
 
 cmd = [
