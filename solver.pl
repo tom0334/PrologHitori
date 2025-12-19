@@ -29,21 +29,20 @@ findPossibleSolution(Board, PositionsToZero):-
     allRows(Positions, RowList),
     allColumns(Positions, ColumnList),
     append(RowList, ColumnList, AllRowsAndColumns),
-    solveAll(AllRowsAndColumns, [], PositionsToZero).
+    maplist(countInList, AllRowsAndColumns, AllCountMaps),
+    solveAll(AllRowsAndColumns, AllCountMaps, [], PositionsToZero).
 
 
-solveAll([], Result, Result).
+solveAll([],[], Result, Result).
 
-solveAll([Head|Tail], ChosenSoFar, Result):-
-    solveRowOrColumn(ChosenSoFar,Chosen, Head),
+solveAll([Head|Tail], [HCm| TCm], ChosenSoFar, Result):-
+    solveRowOrColumn(ChosenSoFar,Chosen, Head, HCm),
     ord_union(ChosenSoFar, Chosen, NewChosen),
-    solveAll(Tail, NewChosen, Result).
+    solveAll(Tail,TCm, NewChosen, Result).
 
 
-%TODO: These countmaps never change, and we do recompute them each time... Can be much faster!
-%TODO same for the duplictes. It would be better to compute all the duplicates beforehand!
-solveRowOrColumn(AlreadyZerodInOther, Result, RowOrColumn):-
-    countInList(RowOrColumn, CountMap), 
+%TODO theduplicates never change! It would be better to compute all the duplicates beforehand!
+solveRowOrColumn(AlreadyZerodInOther, Result, RowOrColumn, CountMap):-
     include(positionIsDuplicateAccordingToDict(CountMap), RowOrColumn, DuplicatesOnly),
     recursivelySolveRowOrColumn(AlreadyZerodInOther, CountMap, [], Result ,DuplicatesOnly).
 
