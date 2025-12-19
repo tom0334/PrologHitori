@@ -1,3 +1,7 @@
 .DS_Store
 solution.out
 /puzzles
+/testoutput
+
+tester.py
+solution_checker.py
