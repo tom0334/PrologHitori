@@ -13,8 +13,6 @@ import subprocess
 SOLVER_FILE = "solver.pl"
 
 
-outputFile = "solution.out"
-
 if(len(sys.argv) < 2):
 	print("ERROR: no puzzle passed. USAGE: ./solve.py PATH_TO_PUZZLE") 
 	sys.exit(1)
@@ -34,9 +32,17 @@ matrix = []
 for i in range(1, 1 + n):
     matrix.append([int(x) for x in lines[i].split()])
 
-puzzleID = lines[1 + n]
-print(f"Read {n}X{n} puzzle: {puzzleID}.")
+seed = lines[1 + n][1:]
+puzzleFileNameWithExtension =  os.path.basename(path)
+puzzleID = os.path.splitext(puzzleFileNameWithExtension)[0]
+
+
+print(f"Read {n}X{n} puzzle: {puzzleID}")
 print(f"Starting {SOLVER_FILE}")
+
+outputDir = os.path.dirname(path)
+outputFileName = puzzleID + ".singlessol"
+outputFile = os.path.join(outputDir, outputFileName)
 
 goal = (
     f"Board = {matrix}, "
