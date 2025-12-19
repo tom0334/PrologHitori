@@ -71,7 +71,8 @@ duplicatesInDict(Dict) :-
 %When there are no duplicates left, we are done!
 % TODO: see if we can make this more efficent somehow.... Can we keep this info so we dont have to check every time?
 recursivelySolveRowOrColumn(_,CountMap,Result,Result,_):-
-    \+ duplicatesInDict(CountMap).
+    \+ duplicatesInDict(CountMap)
+    ,!.
 
 recursivelySolveRowOrColumn(AlreadyZerodInOther,CountMap, ChosenZeros, Result,[(X,Y,V)|Tail]) :-
     CountLeft = CountMap.get(V, 0),
