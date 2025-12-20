@@ -37,7 +37,8 @@ findPossibleSolution(Board, PositionsToZero):-
 solveAll([],[], Result, Result).
 
 solveAll([Head|Tail], [HCm| TCm], ChosenSoFar, Result):-
-    recursivelySolveRowOrColumn(ChosenSoFar, HCm, [], Chosen ,Head),
+    dupValuesOnly(Head, [], DupNums),
+    recursivelySolveRowOrColumn(ChosenSoFar, HCm, DupNums, [], Chosen ,Head),
     ord_union(ChosenSoFar, Chosen, NewChosen),
     solveAll(Tail,TCm, NewChosen, Result).
 
@@ -62,13 +63,11 @@ duplicatesInDict(Dict) :-
     get_dict(_, Dict, V),
     V > 1.  
 
-%When there are no duplicates left, we are done!
-% TODO: see if we can make this more efficent somehow.... Can we keep this info so we dont have to check every time?
-recursivelySolveRowOrColumn(_,CountMap,Result,Result,_):-
-    \+ duplicatesInDict(CountMap)
-    ,!.
 
-recursivelySolveRowOrColumn(AlreadyZerodInOther,CountMap, ChosenZeros, Result,[(X,Y,V)|Tail]) :-
+recursivelySolveRowOrColumn(_,_,[],Result,Result,_):-
+    !.
+
+recursivelySolveRowOrColumn(AlreadyZerodInOther,CountMap,DupNums, ChosenZeros, Result,[(X,Y,V)|Tail]) :-
     CountLeft = CountMap.get(V, 0),
     CountLeft > 1,
     notNextToOther((X,Y), ChosenZeros),
@@ -76,14 +75,19 @@ recursivelySolveRowOrColumn(AlreadyZerodInOther,CountMap, ChosenZeros, Result,[(
 
     %We can pick this one as a zero!
     NewCount is CountLeft - 1, 
+    (   NewCount < 2
+    ->  ord_del_element(DupNums, V, NewDupNums)
+    ;   NewDupNums = DupNums
+    ),
+
     ord_add_element(ChosenZeros, (X,Y), NewChosenZeros),
     put_dict(V, CountMap, NewCount, NewCountMap),
 
-    recursivelySolveRowOrColumn(AlreadyZerodInOther, NewCountMap, NewChosenZeros, Result, Tail).
+    recursivelySolveRowOrColumn(AlreadyZerodInOther, NewCountMap,NewDupNums, NewChosenZeros, Result, Tail).
 
 
-recursivelySolveRowOrColumn(AlreadyZerodInOther,CountMap, ChosenZeros, Result,[(_,_,_)|Tail]) :-
-    recursivelySolveRowOrColumn(AlreadyZerodInOther, CountMap, ChosenZeros, Result, Tail).
+recursivelySolveRowOrColumn(AlreadyZerodInOther,CountMap,DupNums, ChosenZeros, Result,[(_,_,_)|Tail]) :-
+    recursivelySolveRowOrColumn(AlreadyZerodInOther, CountMap,DupNums, ChosenZeros, Result, Tail).
 
 
 
