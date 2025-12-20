@@ -30,21 +30,16 @@ findPossibleSolution(Board, PositionsToZero):-
     allColumns(Positions, ColumnList),
     append(RowList, ColumnList, AllRowsAndColumns),
     maplist(countInList, AllRowsAndColumns, AllCountMaps),
-    solveAll(AllRowsAndColumns, AllCountMaps, [], PositionsToZero).
+    maplist(findDuplicatePositions, AllRowsAndColumns, AllDuplicateLists),
+    solveAll(AllDuplicateLists, AllCountMaps, [], PositionsToZero).
 
 
 solveAll([],[], Result, Result).
 
 solveAll([Head|Tail], [HCm| TCm], ChosenSoFar, Result):-
-    solveRowOrColumn(ChosenSoFar,Chosen, Head, HCm),
+    recursivelySolveRowOrColumn(ChosenSoFar, HCm, [], Chosen ,Head),
     ord_union(ChosenSoFar, Chosen, NewChosen),
     solveAll(Tail,TCm, NewChosen, Result).
-
-
-%TODO theduplicates never change! It would be better to compute all the duplicates beforehand!
-solveRowOrColumn(AlreadyZerodInOther, Result, RowOrColumn, CountMap):-
-    include(positionIsDuplicateAccordingToDict(CountMap), RowOrColumn, DuplicatesOnly),
-    recursivelySolveRowOrColumn(AlreadyZerodInOther, CountMap, [], Result ,DuplicatesOnly).
 
 
 % gives you the indices as pairs (X,Y) that have a nonzero value at the board
