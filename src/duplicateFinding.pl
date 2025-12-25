@@ -9,6 +9,14 @@ positionIsDuplicateAccordingToDict(Dict, (_,_,V)) :-
     get_dict(V, Dict, Count),
     Count > 1.
 
+
+dupValuesOnly([],Result, Result).
+
+dupValuesOnly( [ (_,_,V) | Tail ],SoFar, Result):-
+    ord_add_element(SoFar,V, NewSoFar),
+    dupValuesOnly(Tail, NewSoFar,Result ).
+
+
 %Finds the duplicate positions in list of ALL positions.
 % these duplicates will be split over 3 sets:
     % those duplicate ONLY in their column
