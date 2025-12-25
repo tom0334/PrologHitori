@@ -45,7 +45,7 @@ write_row_rest(File, [H|T]) :-
     write_row_rest(File, T).
 %%%%%%
 
-writeSolution(Filename, N, Seed, Comment, Board, Zerod) :-
+writeSolution(Filename, N, Seed, Comment, Board, Zerod,TimeDict) :-
     translateToBoardWithBlackLetter(Board,Zerod, SolutionMatrix), 
     open(Filename, write, File),
     writeln(File, N),
@@ -54,6 +54,10 @@ writeSolution(Filename, N, Seed, Comment, Board, Zerod) :-
     writeln(File, ""),
     writeln(File, Seed),
     writeln(File, Comment),
+    write(File, "#prologTime="),
+    writeln(File, TimeDict.cpu),
+    write(File, "#prologInferences="),
+    writeln(File, TimeDict.inferences),
     close(File),
     write("Wrote puzzle solution to "),
     print(Filename),

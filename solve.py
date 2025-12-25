@@ -10,6 +10,16 @@ import subprocess
 #Time only includes solving time!
 #So the time spent starting up Python, PROLOG and reading the file is NOT counted.
 
+#the time and inferences will be printed in the solution file as a comment, in the format of #prologTime = X and #prologInferences = X
+
+
+#Example usage of this solve script:
+# python3 solve.py puzzles/unbiased/10x10/ff253783-eb3d-4026-8fae-777c87ef078a.singles
+
+# Example Usage: TESTER: 
+# python3 tester.py puzzles/unbiased/10x10/ solve.py testoutput.out -v "prologTime" -v "prologInferences"
+
+
 SOLVER_FILE = "solver.pl"
 
 

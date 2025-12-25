@@ -17,12 +17,13 @@ isSolutionZerodPositions(Board, SolutionBoard, ZerodPositions) :-
     allNonZeroConnected(SolutionBoard).
 
 isSolutionAndWrite(Board,N,Seed, OutputFile, SolutionBoard, SolutionZerod):-
-    time(
-        isSolutionZerodPositions(Board, SolutionBoard, SolutionZerod )
+    call_time(
+        isSolutionZerodPositions(Board, SolutionBoard, SolutionZerod ),
+        TimeDict
     ),
     solverVersion(Version),
     string_concat("Solved by: v", Version, Comment),
-    writeSolution(OutputFile, N,Seed, Comment, Board, SolutionZerod).
+    writeSolution(OutputFile, N,Seed, Comment, Board, SolutionZerod,TimeDict).
 
 findPossibleSolution(Board, PositionsToZero):-
     allPositionsWithValue(Board, Positions),
