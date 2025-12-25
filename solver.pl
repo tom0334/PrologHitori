@@ -4,6 +4,7 @@
 :- include('src/utils.pl').
 :- include('src/connected.pl').
 :- include('src/duplicateFinding.pl').
+:- include('src/testingUtils.pl').
 
 
 solverVersion("2.0").
@@ -16,14 +17,6 @@ isSolutionZerodPositions(Board, SolutionBoard, ZerodPositions) :-
     translateToBoard(Board, ZerodPositions, SolutionBoard),
     allNonZeroConnected(SolutionBoard).
 
-isSolutionAndWrite(Board,N,Seed, OutputFile, SolutionBoard, SolutionZerod):-
-    call_time(
-        isSolutionZerodPositions(Board, SolutionBoard, SolutionZerod ),
-        TimeDict
-    ),
-    solverVersion(Version),
-    string_concat("Solved by: v", Version, Comment),
-    writeSolution(OutputFile, N,Seed, Comment, Board, SolutionZerod,TimeDict).
 
 findPossibleSolution(Board, PositionsToZero):-
     allPositionsWithValue(Board, Positions),
