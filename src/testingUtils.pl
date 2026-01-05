@@ -5,7 +5,13 @@ isSolutionAndWrite(Board,N,Seed, OutputFile, SolutionBoard, SolutionZerod):-
     ),
     solverVersion(Version),
     string_concat("Solved by: v", Version, Comment),
-    writeSolution(OutputFile, N,Seed, Comment, Board, SolutionZerod,TimeDict).
+    writeSolution(OutputFile, N,Seed, Comment, Board, SolutionZerod,TimeDict),
+    %Print some info to the console so you can see live what is happening:
+    write("Solved! Took "),
+    write(TimeDict.cpu),
+    write(" seconds, "),
+    write(TimeDict.inferences),
+    writeln(" inferences").
 
 
 %Writing board with chosen zeros to solution output file
@@ -38,10 +44,9 @@ writeSolution(Filename, N, Seed, Comment, Board, Zerod,TimeDict) :-
     writeln(File, TimeDict.cpu),
     write(File, "#prologInferences="),
     writeln(File, TimeDict.inferences),
-    close(File),
-    write("Wrote puzzle solution to "),
-    print(Filename),
-    writeln("").
+    close(File).
+
+
 
 
 %Writes a matrix to a file

@@ -47,8 +47,7 @@ puzzleFileNameWithExtension =  os.path.basename(path)
 puzzleID = os.path.splitext(puzzleFileNameWithExtension)[0]
 
 
-print(f"Read {n}X{n} puzzle: {puzzleID}")
-print(f"Starting {SOLVER_FILE}")
+print(f"\n\nRead {n}X{n} puzzle: {puzzleID}")
 
 outputDir = os.path.dirname(path)
 outputFileName = puzzleID + ".singlessol"
