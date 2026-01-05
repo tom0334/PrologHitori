@@ -2,6 +2,7 @@
 % CONNECTED CONSTRAINT
 
 allNonZeroConnected(NonZerodPositions) :-
+    writeln("CHECKING CONNECTED"),
     NonZerodPositions = [Start|_],
     findConnectedPositions(Start, NonZerodPositions, Connected),
     listsHaveSameSize(NonZerodPositions,Connected).

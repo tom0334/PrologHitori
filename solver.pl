@@ -13,18 +13,16 @@ solverVersion("2.0").
 isSolution(Board, SolutionBoard) :- isSolutionZerodPositions(Board, SolutionBoard, _ ).
 
 isSolutionZerodPositions(Board, SolutionBoard, ZerodPositions) :-
-    findPossibleSolution(Board, ZerodPositions), 
-    
     allPositionsWithValue(Board, AllPositionsWithValue),
     convertToValueOnlyPositions(AllPositionsWithValue, AllPositionsNoValue),
-    ord_subtract(AllPositionsNoValue, ZerodPositions,  NonZerodPositions),
 
+    findPossibleSolution(AllPositionsWithValue, ZerodPositions), 
+    ord_subtract(AllPositionsNoValue, ZerodPositions, NonZerodPositions),
     allNonZeroConnected(NonZerodPositions),
     translateToBoard(Board, ZerodPositions, SolutionBoard).
 
 
-findPossibleSolution(Board, PositionsToZero):-
-    allPositionsWithValue(Board, Positions),
+findPossibleSolution(Positions, PositionsToZero):-
     allRows(Positions, RowList),
     allColumns(Positions, ColumnList),
     append(RowList, ColumnList, AllRowsAndColumns),
