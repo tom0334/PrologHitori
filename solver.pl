@@ -23,23 +23,18 @@ findPossibleSolution(Board, PositionsToZero):-
     allRows(Positions, RowList),
     allColumns(Positions, ColumnList),
     append(RowList, ColumnList, AllRowsAndColumns),
-    solveAll(AllRowsAndColumns, [], PositionsToZero).
+    maplist(countInList, AllRowsAndColumns, AllCountMaps),
+    maplist(findDuplicatePositions, AllRowsAndColumns, AllDuplicateLists),
+    solveAll(AllDuplicateLists, AllCountMaps, [], PositionsToZero).
 
 
-solveAll([], Result, Result).
+solveAll([],[], Result, Result).
 
-solveAll([Head|Tail], ChosenSoFar, Result):-
-    solveRowOrColumn(ChosenSoFar,Chosen, Head),
+solveAll([Head|Tail], [HCm| TCm], ChosenSoFar, Result):-
+    dupValuesOnly(Head, [], DupNums),
+    recursivelySolveRowOrColumn(ChosenSoFar, HCm, DupNums, [], Chosen ,Head),
     ord_union(ChosenSoFar, Chosen, NewChosen),
-    solveAll(Tail, NewChosen, Result).
-
-
-%TODO: These countmaps never change, and we do recompute them each time... Can be much faster!
-%TODO same for the duplictes. It would be better to compute all the duplicates beforehand!
-solveRowOrColumn(AlreadyZerodInOther, Result, RowOrColumn):-
-    countInList(RowOrColumn, CountMap), 
-    include(positionIsDuplicateAccordingToDict(CountMap), RowOrColumn, DuplicatesOnly),
-    recursivelySolveRowOrColumn(AlreadyZerodInOther, CountMap, [], Result ,DuplicatesOnly).
+    solveAll(Tail,TCm, NewChosen, Result).
 
 
 % gives you the indices as pairs (X,Y) that have a nonzero value at the board
@@ -62,13 +57,11 @@ duplicatesInDict(Dict) :-
     get_dict(_, Dict, V),
     V > 1.  
 
-%When there are no duplicates left, we are done!
-% TODO: see if we can make this more efficent somehow.... Can we keep this info so we dont have to check every time?
-recursivelySolveRowOrColumn(_,CountMap,Result,Result,_):-
-    \+ duplicatesInDict(CountMap)
-    ,!.
 
-recursivelySolveRowOrColumn(AlreadyZerodInOther,CountMap, ChosenZeros, Result,[(X,Y,V)|Tail]) :-
+recursivelySolveRowOrColumn(_,_,[],Result,Result,_):-
+    !.
+
+recursivelySolveRowOrColumn(AlreadyZerodInOther,CountMap,DupNums, ChosenZeros, Result,[(X,Y,V)|Tail]) :-
     CountLeft = CountMap.get(V, 0),
     CountLeft > 1,
     notNextToOther((X,Y), ChosenZeros),
@@ -76,14 +69,19 @@ recursivelySolveRowOrColumn(AlreadyZerodInOther,CountMap, ChosenZeros, Result,[(
 
     %We can pick this one as a zero!
     NewCount is CountLeft - 1, 
+    (   NewCount < 2
+    ->  ord_del_element(DupNums, V, NewDupNums)
+    ;   NewDupNums = DupNums
+    ),
+
     ord_add_element(ChosenZeros, (X,Y), NewChosenZeros),
     put_dict(V, CountMap, NewCount, NewCountMap),
 
-    recursivelySolveRowOrColumn(AlreadyZerodInOther, NewCountMap, NewChosenZeros, Result, Tail).
+    recursivelySolveRowOrColumn(AlreadyZerodInOther, NewCountMap,NewDupNums, NewChosenZeros, Result, Tail).
 
 
-recursivelySolveRowOrColumn(AlreadyZerodInOther,CountMap, ChosenZeros, Result,[(_,_,_)|Tail]) :-
-    recursivelySolveRowOrColumn(AlreadyZerodInOther, CountMap, ChosenZeros, Result, Tail).
+recursivelySolveRowOrColumn(AlreadyZerodInOther,CountMap,DupNums, ChosenZeros, Result,[(_,_,_)|Tail]) :-
+    recursivelySolveRowOrColumn(AlreadyZerodInOther, CountMap,DupNums, ChosenZeros, Result, Tail).
 
 
 
