@@ -31,11 +31,6 @@ allDuplicateSets(AllPositions, RowOnly, ColOnly, InBoth,AllWithoutValue) :-
     ord_union(DupsInRows, DupsInColumns, DupsInAll),
     convertToValueOnlyPositions(DupsInAll, AllWithoutValue).
 
-stripValue((X,Y,_), (X,Y)).
-
-convertToValueOnlyPositions(PositionsWithValue, Result) :-
-    maplist(stripValue, PositionsWithValue, PositionsWithoutValue),
-    list_to_ord_set(PositionsWithoutValue, Result).
 
 %finds all duplicates in a list of positions, returns ordered set
 duplicatesInAll(RowsOrColumns, AllDuplicatesSet) :-
