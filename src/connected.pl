@@ -1,29 +1,10 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % CONNECTED CONSTRAINT
 
-allNonZeroConnected(Board) :-
-    nonZeroPositions(Board, Positions),
-    Positions = [Start|_],
-    findConnectedPositions(Start, Positions, Connected),
-    listsHaveSameSize(Positions,Connected).
-
-getRow(Board, X, Row):- nth0(X,Board,Row).
-
-%get from board at X,Y. Top Left is 0,0.
-elementAt(Board, X,Y,Element):-
-    getRow(Board,Y,Row), 
-    % row is now the entire row, get the element from that:
-    nth0(X,Row,Element).
-
-%TODO replace this elementAt call to a get from the set of chosen duplicates
-%should be much faster.
-elementAtIsNotZero(Board,X,Y):-
-    elementAt(Board,X,Y,Value),
-    Value\= 0.
-
-% gives you the indices as pairs (X,Y) that have a nonzero value at the board
-nonZeroPositions(Board, Positions) :-
-    findall( (X,Y), elementAtIsNotZero(Board,X,Y), Positions).
+allNonZeroConnected(NonZerodPositions) :-
+    NonZerodPositions = [Start|_],
+    findConnectedPositions(Start, NonZerodPositions, Connected),
+    listsHaveSameSize(NonZerodPositions,Connected).
 
 listsHaveSameSize(List1,List2):-
     length(List1, Len),
@@ -49,7 +30,6 @@ findAllAdjacentWithinPostions(From, Positions, AllAdjacent) :-
         adjacentWithinPostions(Positions, From, Adjacent),
         AllAdjacent
     ).
-
 
 
 %%%%%%%%%%%%%%%%%%%
