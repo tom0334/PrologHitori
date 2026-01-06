@@ -15,34 +15,38 @@ isSolution(Board, SolutionBoard) :- isSolutionZerodPositions(Board, SolutionBoar
 
 isSolutionZerodPositions(Board, SolutionBoard, ZerodPositions) :-
     allPositionsWithValue(Board, AllPositionsWithValue),
-    convertToValueOnlyPositions(AllPositionsWithValue, AllPositionsNoValue),
+    %convertToValueOnlyPositions(AllPositionsWithValue, AllPositionsNoValue),
 
-    findPossibleSolution(AllPositionsWithValue, ZerodPositions), 
+    findPossibleSolution(Board,AllPositionsWithValue, ZerodPositions), 
     %ord_subtract(AllPositionsNoValue, ZerodPositions, NonZerodPositions),
     %allNonZeroConnected(NonZerodPositions),
     translateToBoard(Board, ZerodPositions, SolutionBoard).
 
 
-findPossibleSolution(Positions, PositionsToZero):-
+findPossibleSolution(Board, Positions, PositionsToZero):-
     allRows(Positions, RowList),
     allColumns(Positions, ColumnList),
     length(ColumnList, N),
     append(RowList, ColumnList, AllRowsAndColumns),
     maplist(countInList, AllRowsAndColumns, AllCountMaps),
     maplist(findDuplicatePositions, AllRowsAndColumns, AllDuplicateLists),
-    solveAll(AllDuplicateLists, AllCountMaps, N, [], PositionsToZero).
+    solveAll(Board,AllDuplicateLists, AllCountMaps, N, [], PositionsToZero).
 
 
-solveAll([],[],_, Result, Result).
+solveAll(_, [],[],_, Result, Result).
 
-solveAll([Head|Tail], [HCm| TCm], N, ChosenSoFar, Result):-
+solveAll(Board,[Head|Tail], [HCm| TCm], N, ChosenSoFar, Result):-
     dupValuesOnly(Head, [], DupNums),
     recursivelySolveRowOrColumn(ChosenSoFar, HCm, DupNums, [], Chosen ,Head),
     ord_union(ChosenSoFar, Chosen, NewChosen),
-    ord_subtract(Chosen, ChosenSoFar, NewlyChosen),
 
-    isStillConnectedFast(NewlyChosen, N, NewChosen),
-    solveAll(Tail,TCm,N, NewChosen, Result).
+    %translateToBoard(Board, NewChosen, SolutionBoard),
+    %writeln(""),
+    %maplist(writeln,SolutionBoard),
+    %writeln(""),
+
+    isStillConnectedFast(Chosen, N, NewChosen),
+    solveAll(Board,Tail,TCm,N, NewChosen, Result).
 
 
 % gives you the indices as pairs (X,Y) that have a nonzero value at the board

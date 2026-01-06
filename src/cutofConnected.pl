@@ -10,11 +10,6 @@ isOnEdge((X,Y),N):-
     (X is N -1,!);
     (Y is N -1,!).
 
-isInCorner((X,Y), N):-
-   ((X = 0, Y = 0),!);
-   (X is N -1, Y is N -1).
-
-
 getPositionToExplore(ChosenPositions, From, Adjacent):-
     diagonallyAdjacentPos(From, Adjacent),
     ord_memberchk(Adjacent,ChosenPositions).
@@ -48,10 +43,14 @@ findConnectedPathsToEdges([_ | StartT], N, ChosenPositions, IsConnected) :-
     findConnectedPathsToEdges(StartT, N, ChosenPositions, IsConnected).
 
 
+
+
 %end case 2: when we find an edge when we already found one, we are done, and can return true
-dfsCutSearch([Head | _Tail], N, _ChosenPositions, 1 , _Visited, 2):-
+dfsCutSearch([Head | _Tail], N, _ChosenPositions, 1 , Visited, 2):-
     isOnEdge(Head,N),
-    %writeln("END CASE 2: CONNECTION FOUND"),
+    \+ member(Head, Visited),
+    %write("END CASE 2: CONNECTION FOUND "),
+    %writeln(Head),
     %writeln(""),
     !.
 
@@ -61,11 +60,10 @@ dfsCutSearch([], _N, _ChosenPositions, _EdgesFoundSoFar, _Visited, 0):-
     %writeln(""),
     !.
 
-
 % If head is already visited, move on to the next in the queue 
 dfsCutSearch([Head | Tail], N, ChosenPositions, EdgesFoundSoFar, Visited, Result):-
     member(Head, Visited),
-    %write("dfs 2: "),
+    %write("already visited... : "),
     %writeln(Head),
     dfsCutSearch(Tail, N, ChosenPositions, EdgesFoundSoFar, Visited, Result),
     !.
