@@ -24,6 +24,13 @@ findAllPositionsToExplore(ChosenPositions, From, AllAdjacent) :-
 
 %%%%%%%%%%%%%%%
 
+%TODO also detect cases where the zero forms a loop around a spot, closing it in.
+% These are more rare, so i guess it still better to use both for now.
+%example:
+%    0 
+%  0 5 0
+%    0
+
 isStillConnectedFast(Chosen, N, ChosenSoFar):-
         %write("Chosen:"),
         %writeln(Chosen),
@@ -70,16 +77,16 @@ dfsCutSearch([Head | Tail], N, ChosenPositions, EdgesFoundSoFar, Visited, Result
 
 %If the current head is on an edge, add one to the edges EdgesFoundSoFar
 dfsCutSearch([Head | Tail], N, ChosenPositions, EdgesFoundSoFar,Visited, Result):-
-    %writeln("dfs 3"),
+    %witeln("dfs 3"),
     calcNewEdgesSoFar(Head, N, EdgesFoundSoFar, NewEdgesSoFar),
-    %write('new edges: '),
-    %write(NewEdgesSoFar),
-    %write(" from pos: "),
-    %writeln(Head),
+    %wite('new edges: '),
+    %wite(NewEdgesSoFar),
+    %wite(" from pos: "),
+    %witeln(Head),
 
     findAllPositionsToExplore(ChosenPositions, Head, Neighbors),
-    %write('Neighbors:'),
-    %writeln(Neighbors),
+    %wite('Neighbors:'),
+    %witeln(Neighbors),
 
     append(Tail, Neighbors, Queue), 
     dfsCutSearch(Queue, N, ChosenPositions, NewEdgesSoFar, [Head|Visited], Result),

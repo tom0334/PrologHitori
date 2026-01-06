@@ -15,11 +15,11 @@ isSolution(Board, SolutionBoard) :- isSolutionZerodPositions(Board, SolutionBoar
 
 isSolutionZerodPositions(Board, SolutionBoard, ZerodPositions) :-
     allPositionsWithValue(Board, AllPositionsWithValue),
-    %convertToValueOnlyPositions(AllPositionsWithValue, AllPositionsNoValue),
+    convertToValueOnlyPositions(AllPositionsWithValue, AllPositionsNoValue),
 
     findPossibleSolution(Board,AllPositionsWithValue, ZerodPositions), 
-    %ord_subtract(AllPositionsNoValue, ZerodPositions, NonZerodPositions),
-    %allNonZeroConnected(NonZerodPositions),
+    ord_subtract(AllPositionsNoValue, ZerodPositions, NonZerodPositions),
+    allNonZeroConnected(NonZerodPositions),
     translateToBoard(Board, ZerodPositions, SolutionBoard).
 
 
@@ -38,9 +38,13 @@ solveAll(_, [],[],_, Result, Result).
 solveAll(Board,[Head|Tail], [HCm| TCm], N, ChosenSoFar, Result):-
     dupValuesOnly(Head, [], DupNums),
     recursivelySolveRowOrColumn(ChosenSoFar, HCm, DupNums, [], Chosen ,Head),
+    
+
+    %TODO Figure out why chosen sometimes has elements that were already chosen?
     ord_union(ChosenSoFar, Chosen, NewChosen),
 
     %translateToBoard(Board, NewChosen, SolutionBoard),
+    %writeln(Board),
     %writeln(""),
     %maplist(writeln,SolutionBoard),
     %writeln(""),
