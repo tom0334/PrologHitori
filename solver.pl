@@ -5,6 +5,7 @@
 :- include('src/connected.pl').
 :- include('src/duplicateFinding.pl').
 :- include('src/testingUtils.pl').
+:- include('src/cutofConnected.pl').
 
 
 solverVersion("2.0").
@@ -17,27 +18,31 @@ isSolutionZerodPositions(Board, SolutionBoard, ZerodPositions) :-
     convertToValueOnlyPositions(AllPositionsWithValue, AllPositionsNoValue),
 
     findPossibleSolution(AllPositionsWithValue, ZerodPositions), 
-    ord_subtract(AllPositionsNoValue, ZerodPositions, NonZerodPositions),
-    allNonZeroConnected(NonZerodPositions),
+    %ord_subtract(AllPositionsNoValue, ZerodPositions, NonZerodPositions),
+    %allNonZeroConnected(NonZerodPositions),
     translateToBoard(Board, ZerodPositions, SolutionBoard).
 
 
 findPossibleSolution(Positions, PositionsToZero):-
     allRows(Positions, RowList),
     allColumns(Positions, ColumnList),
+    length(ColumnList, N),
     append(RowList, ColumnList, AllRowsAndColumns),
     maplist(countInList, AllRowsAndColumns, AllCountMaps),
     maplist(findDuplicatePositions, AllRowsAndColumns, AllDuplicateLists),
-    solveAll(AllDuplicateLists, AllCountMaps, [], PositionsToZero).
+    solveAll(AllDuplicateLists, AllCountMaps, N, [], PositionsToZero).
 
 
-solveAll([],[], Result, Result).
+solveAll([],[],_, Result, Result).
 
-solveAll([Head|Tail], [HCm| TCm], ChosenSoFar, Result):-
+solveAll([Head|Tail], [HCm| TCm], N, ChosenSoFar, Result):-
     dupValuesOnly(Head, [], DupNums),
     recursivelySolveRowOrColumn(ChosenSoFar, HCm, DupNums, [], Chosen ,Head),
     ord_union(ChosenSoFar, Chosen, NewChosen),
-    solveAll(Tail,TCm, NewChosen, Result).
+    ord_subtract(Chosen, ChosenSoFar, NewlyChosen),
+
+    isStillConnectedFast(NewlyChosen, N, NewChosen),
+    solveAll(Tail,TCm,N, NewChosen, Result).
 
 
 % gives you the indices as pairs (X,Y) that have a nonzero value at the board
