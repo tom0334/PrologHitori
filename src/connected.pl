@@ -43,18 +43,21 @@ findConnectedPositions(Start, Positions, Connected) :-
     % Connected is the result
     dfs([Start], Positions, [], Connected).
 
+
+% End case: when the queue is empty, you can return the set of visited as the result
+dfs([], _, Visited, Visited). 
+
 % If head is already visited, move on to the next in the queue 
 dfs([Head|Tail], Positions, Visited, Connected) :-
-    member(Head, Visited),
-    dfs(Tail, Positions, Visited, Connected).
+    member(Head, Visited), %this seems slow, but often the head was just visited. So its acutally faster than nb_set! (I)
+    dfs(Tail, Positions, Visited, Connected),
+    !.
 
 % if head is NOT visited, find its neigbours from the positions
 % and add them to the queue, 
 dfs([Head|Tail], Positions, Visited, Connected) :-
-    \+ member(Head, Visited),
     findAllAdjacentWithinPostions(Head, Positions, Neighbors),
     append(Tail, Neighbors, Queue), %queue is tail(the prev queue) + neighbours
     dfs(Queue, Positions, [Head|Visited], Connected).
 
-% End case: when the queue is empty, you can return the set of visited as the result
-dfs([], _, Visited, Visited).
+

@@ -30,16 +30,14 @@ findPossibleSolution(Board, Positions, PositionsToZero):-
     append(RowList, ColumnList, AllRowsAndColumns),
     maplist(countInList, AllRowsAndColumns, AllCountMaps),
     maplist(findDuplicatePositions, AllRowsAndColumns, AllDuplicateLists),
-    solveAll(Board,AllDuplicateLists, AllCountMaps, N, [], PositionsToZero).
+    maplist(dupValuesOnly([]), AllDuplicateLists, AllDupNums),
+    solveAll(Board,AllDuplicateLists,AllCountMaps,AllDupNums, N, [], PositionsToZero).
 
 
-solveAll(_, [],[],_, Result, Result).
+solveAll(_Board, [],[],[], _N, Result, Result).
 
-solveAll(Board,[Head|Tail], [HCm| TCm], N, ChosenSoFar, Result):-
-    dupValuesOnly(Head, [], DupNums),
-    recursivelySolveRowOrColumn(ChosenSoFar, HCm, DupNums, [], Chosen ,Head),
-    
-
+solveAll(Board, [Head|Tail], [HCm| TCm], [HDupNums | TDupNums], N, ChosenSoFar, Result):-
+    recursivelySolveRowOrColumn(ChosenSoFar, HCm, HDupNums, [], Chosen ,Head),
     %TODO Figure out why chosen sometimes has elements that were already chosen?
     ord_union(ChosenSoFar, Chosen, NewChosen),
 
@@ -50,7 +48,7 @@ solveAll(Board,[Head|Tail], [HCm| TCm], N, ChosenSoFar, Result):-
     %writeln(""),
 
     isStillConnectedFast(Chosen, N, NewChosen),
-    solveAll(Board,Tail,TCm,N, NewChosen, Result).
+    solveAll(Board,Tail,TCm,TDupNums,N, NewChosen, Result).
 
 
 % gives you the indices as pairs (X,Y) that have a nonzero value at the board
@@ -59,14 +57,18 @@ allPositionsWithValue(Board, PositionsWithValue) :-
 
 %IMPORTANT: the list in which you check needs to be (X,Y) only, NOT (X,Y,V)
 notNextToOther((X,Y),AllWithoutValue):-
-    XNext is X + 1,
     XPrev is X -1,
-    YNext is Y+1,
-    YPrev is Y-1,
-    (\+ ord_memberchk((XNext,Y),AllWithoutValue)),
     (\+ ord_memberchk((XPrev,Y),AllWithoutValue)),
-    (\+ ord_memberchk((X,YNext),AllWithoutValue)),
-    (\+ ord_memberchk((X,YPrev),AllWithoutValue)).
+
+    YPrev is Y-1,
+    (\+ ord_memberchk((X,YPrev),AllWithoutValue)),
+
+    XNext is X + 1,
+    (\+ ord_memberchk((XNext,Y),AllWithoutValue)),
+
+    YNext is Y+1,
+    (\+ ord_memberchk((X,YNext),AllWithoutValue)).
+
 
 
 duplicatesInDict(Dict) :- 
@@ -80,8 +82,9 @@ recursivelySolveRowOrColumn(_,_,[],Result,Result,_):-
 recursivelySolveRowOrColumn(AlreadyZerodInOther,CountMap,DupNums, ChosenZeros, Result,[(X,Y,V)|Tail]) :-
     CountLeft = CountMap.get(V, 0),
     CountLeft > 1,
+        notNextToOther((X,Y), AlreadyZerodInOther),
     notNextToOther((X,Y), ChosenZeros),
-    notNextToOther((X,Y), AlreadyZerodInOther),
+
 
     %We can pick this one as a zero!
     NewCount is CountLeft - 1, 
