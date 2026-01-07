@@ -45,14 +45,18 @@ allPositionsWithValue(Board, PositionsWithValue) :-
 
 %IMPORTANT: the list in which you check needs to be (X,Y) only, NOT (X,Y,V)
 notNextToOther((X,Y),AllWithoutValue):-
-    XNext is X + 1,
     XPrev is X -1,
-    YNext is Y+1,
-    YPrev is Y-1,
-    (\+ ord_memberchk((XNext,Y),AllWithoutValue)),
     (\+ ord_memberchk((XPrev,Y),AllWithoutValue)),
-    (\+ ord_memberchk((X,YNext),AllWithoutValue)),
-    (\+ ord_memberchk((X,YPrev),AllWithoutValue)).
+
+    YPrev is Y-1,
+    (\+ ord_memberchk((X,YPrev),AllWithoutValue)),
+
+    XNext is X + 1,
+    (\+ ord_memberchk((XNext,Y),AllWithoutValue)),
+
+    YNext is Y+1,
+    (\+ ord_memberchk((X,YNext),AllWithoutValue)).
+
 
 
 duplicatesInDict(Dict) :- 
