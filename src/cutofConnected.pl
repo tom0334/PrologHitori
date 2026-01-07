@@ -10,28 +10,22 @@ isOnEdge((X,Y),N):-
     (X is N -1,!);
     (Y is N -1,!).
 
-getPositionToExplore(ChosenPositions, UsedEdges, From, (Adjacent,From))  :-
+getPositionToExplore(ChosenPositions, From, (Adjacent,From))  :-
     diagonallyAdjacentPos(From, Adjacent),
-    ord_memberchk(Adjacent, ChosenPositions),
-    \+ (member( (From, Adjacent), UsedEdges )),
-    \+ (member( (Adjacent, From), UsedEdges )).
+    ord_memberchk(Adjacent, ChosenPositions).
 
 
-findAllPositionsToExplore(ChosenPositions, UsedEdges, From, AllAdjacentFromInfoPairs) :-
+findAllPositionsToExplore(ChosenPositions,  From, AllAdjacentFromInfoPairs) :-
     findall(
         Adjacent,
-        getPositionToExplore(ChosenPositions, UsedEdges, From, Adjacent),
+        getPositionToExplore(ChosenPositions, From, Adjacent),
         AllAdjacentFromInfoPairs
     ).
 
 %%%%%%%%%%%%%%%
 
-%TODO also detect cases where the zero forms a loop around a spot, closing it in.
-% These are more rare, so i guess it still better to use both for now.
-%example:
-%    0 
-%  0 5 0
-%    0
+
+%TODO: see if we can get rid of the overhead of this predicate. It does almost nothing and is called very often
 
 isStillConnectedFast(Chosen, N, ChosenSoFar):-
         %write("Chosen:"),
@@ -97,7 +91,7 @@ dfsCutSearch([(Head,From) | Tail], N, ChosenPositions, EdgesFoundSoFar,UsedEdges
     %write("UsedEdges:"),
     %writeln(UsedEdges),
 
-    findAllPositionsToExplore(ChosenPositions, UsedEdges, Head, Neighbors),
+    findAllPositionsToExplore(ChosenPositions, Head, Neighbors),
     %write('Neighbors:'),
     %writeln(Neighbors),
 
