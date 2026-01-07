@@ -5,6 +5,7 @@
 :- include('src/connected.pl').
 :- include('src/duplicateFinding.pl').
 :- include('src/testingUtils.pl').
+:- include('src/cutofConnected.pl').
 
 
 solverVersion("2.0").
@@ -16,28 +17,46 @@ isSolutionZerodPositions(Board, SolutionBoard, ZerodPositions) :-
     allPositionsWithValue(Board, AllPositionsWithValue),
     convertToValueOnlyPositions(AllPositionsWithValue, AllPositionsNoValue),
 
-    findPossibleSolution(AllPositionsWithValue, ZerodPositions), 
+    findPossibleSolution(Board,AllPositionsWithValue, ZerodPositions), 
     ord_subtract(AllPositionsNoValue, ZerodPositions, NonZerodPositions),
     allNonZeroConnected(NonZerodPositions),
     translateToBoard(Board, ZerodPositions, SolutionBoard).
 
 
-findPossibleSolution(Positions, PositionsToZero):-
+findPossibleSolution(Board, Positions, PositionsToZero):-
     allRows(Positions, RowList),
     allColumns(Positions, ColumnList),
+    length(ColumnList, N),
     append(RowList, ColumnList, AllRowsAndColumns),
     maplist(countInList, AllRowsAndColumns, AllCountMaps),
     maplist(findDuplicatePositions, AllRowsAndColumns, AllDuplicateLists),
     maplist(dupValuesOnly([]), AllDuplicateLists, AllDupNums),
-    solveAll(AllDuplicateLists, AllCountMaps, AllDupNums, [], PositionsToZero).
+    solveAll(Board,AllDuplicateLists,AllCountMaps,AllDupNums, N, [], PositionsToZero).
 
 
-solveAll([],[],[], Result, Result).
+solveAll(_Board, [],[],[], _N, Result, Result).
 
-solveAll([Head|Tail], [HCm| TCm], [HDupNums | TDupNums], ChosenSoFar, Result):-
+%params:
+%Board: the board just for debugging purposes.
+% [RowsOrColumns]: just each row and each column in a list.
+% [Countmaps]: the countmaps for the amount of times each number occurs in a the row or column
+% [Dupnums] all duplicate numbers only in each row. This may contain numbers that are already solved, but that is okay. Testing found that to be better than sorting them out again.
+% N: puzzle size 
+% ChosenSoFar: a bag for the currently chosen positions.
+% Result: Will be unified with result when done: a list of all positions to make zero
+solveAll(Board, [Head|Tail], [HCm| TCm], [HDupNums | TDupNums], N, ChosenSoFar, Result):-
     recursivelySolveRowOrColumn(ChosenSoFar, HCm, HDupNums, [], Chosen ,Head),
     ord_union(ChosenSoFar, Chosen, NewChosen),
-    solveAll(Tail,TCm, TDupNums, NewChosen, Result).
+
+    %translateToBoard(Board, NewChosen, SolutionBoard),
+    %writeln(Board),
+    %writeln(""),
+    %maplist(writeln,SolutionBoard),
+    %writeln(""),
+
+    isStillConnectedFast(Chosen, N, NewChosen),
+    solveAll(Board,Tail,TCm,TDupNums,N, NewChosen, Result).
+
 
 % gives you the indices as pairs (X,Y) that have a nonzero value at the board
 allPositionsWithValue(Board, PositionsWithValue) :-
