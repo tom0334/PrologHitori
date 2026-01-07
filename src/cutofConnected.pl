@@ -55,12 +55,9 @@ findConnectedPathsToEdges([_ | StartT], N, ChosenPositions, IsConnected) :-
 
 %If the current head is on an edge, add one to the edges EdgesFoundSoFar
 dfsCutSearch([(Head,From) | Tail], N, ChosenPositions, EdgesFoundSoFar,UsedEdges,Visited, Result):-
-    (
-        member( (Head, From), UsedEdges);  
-        member( (From, Head), UsedEdges)
-    ),
+    member( (From, Head), UsedEdges),
 
-    %writeln("ALREADY USED EDGE"),
+    %writeln("ALREADY USED EDGE in the other direction!"),
     dfsCutSearch(Tail, N, ChosenPositions, EdgesFoundSoFar, UsedEdges,Visited, Result),
     !.
 
@@ -104,7 +101,7 @@ dfsCutSearch([(Head,From) | Tail], N, ChosenPositions, EdgesFoundSoFar,UsedEdges
     %write('Neighbors:'),
     %writeln(Neighbors),
 
-    append( Tail,Neighbors, Queue),
+    append(Tail, Neighbors, Queue),
     dfsCutSearch(Queue, N, ChosenPositions, NewEdgesSoFar, [(Head,From)|UsedEdges],[Head|Visited], Result),
     !.
 
