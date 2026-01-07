@@ -70,8 +70,9 @@ recursivelySolveRowOrColumn(_,_,[],Result,Result,_):-
 recursivelySolveRowOrColumn(AlreadyZerodInOther,CountMap,DupNums, ChosenZeros, Result,[(X,Y,V)|Tail]) :-
     CountLeft = CountMap.get(V, 0),
     CountLeft > 1,
+        notNextToOther((X,Y), AlreadyZerodInOther),
     notNextToOther((X,Y), ChosenZeros),
-    notNextToOther((X,Y), AlreadyZerodInOther),
+
 
     %We can pick this one as a zero!
     NewCount is CountLeft - 1, 
