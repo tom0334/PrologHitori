@@ -10,16 +10,18 @@ isOnEdge((X,Y),N):-
     (X is N -1,!);
     (Y is N -1,!).
 
-getPositionToExplore(ChosenPositions, From, Adjacent):-
+getPositionToExplore(ChosenPositions, UsedEdges, From, (Adjacent,From))  :-
     diagonallyAdjacentPos(From, Adjacent),
-    ord_memberchk(Adjacent,ChosenPositions).
+    ord_memberchk(Adjacent, ChosenPositions),
+    \+ (member( (From, Adjacent), UsedEdges )),
+    \+ (member( (Adjacent, From), UsedEdges )).
 
-%Todo see if this is a bottleneck and if we can speed it up using sets or something
-%allAdjacent is a list of all the positions that are adjecent to From that can be found in the list Positions
-findAllPositionsToExplore(ChosenPositions, From, AllAdjacent) :-
-    findall(Adjacent, 
-        getPositionToExplore(ChosenPositions, From, Adjacent),
-        AllAdjacent
+
+findAllPositionsToExplore(ChosenPositions, UsedEdges, From, AllAdjacentFromInfoPairs) :-
+    findall(
+        Adjacent,
+        getPositionToExplore(ChosenPositions, UsedEdges, From, Adjacent),
+        AllAdjacentFromInfoPairs
     ).
 
 %%%%%%%%%%%%%%%
@@ -41,8 +43,8 @@ isStillConnectedFast(Chosen, N, ChosenSoFar):-
 findConnectedPathsToEdges([StartH | _StartT], N, ChosenPositions, true) :-
     %write("searching from: "),
     %writeln(StartH),
-    dfsCutSearch([StartH], N, ChosenPositions, 0,[], Result),
-    Result = 2,
+    dfsCutSearch([(StartH,StartH)], N, ChosenPositions, 0,[],[], Result),
+    Result >= 2,
     %writeln("Conncected found!"),
     !.
 
@@ -51,47 +53,60 @@ findConnectedPathsToEdges([_ | StartT], N, ChosenPositions, IsConnected) :-
 
 
 
+%If the current head is on an edge, add one to the edges EdgesFoundSoFar
+dfsCutSearch([(Head,From) | Tail], N, ChosenPositions, EdgesFoundSoFar,UsedEdges,Visited, Result):-
+    (
+        member( (Head, From), UsedEdges);  
+        member( (From, Head), UsedEdges)
+    ),
 
-%end case 2: when we find an edge when we already found one, we are done, and can return true
-dfsCutSearch([Head | _Tail], N, _ChosenPositions, 1 , Visited, 2):-
+    %writeln("ALREADY USED EDGE"),
+    dfsCutSearch(Tail, N, ChosenPositions, EdgesFoundSoFar, UsedEdges,Visited, Result),
+    !.
+
+
+%end case 1: when we find an edge when we already found one, we are done, and can return true
+dfsCutSearch( [ (Head,_From) | _Tail], N, _ChosenPositions, 1 , _UsedEdges,_Visited, 2):-
     isOnEdge(Head,N),
-    \+ member(Head, Visited),
-    %write("END CASE 2: CONNECTION FOUND "),
+    %write("END CASE 1: CONNECTION FOUND "),
     %writeln(Head),
+    %writeln(""),
+    !.
+
+dfsCutSearch([(Head,_From) | _], _N, _ChosenPositions, _EdgesFoundSoFar, _UsedEdges,Visited, 2):-
+    member(Head, Visited),
+    %write("END CASE 2: found already visited! (CYCLE detected):"),
+    %writeln(Visited),
     %writeln(""),
     !.
 
 % End case 1: when the queue is empty, we can say we did NOT find a cutting path
-dfsCutSearch([], _N, _ChosenPositions, _EdgesFoundSoFar, _Visited, 0):-
-    %writeln("END CASE 1: Q empty..."),
+dfsCutSearch([], _N, _ChosenPositions, _EdgesFoundSoFar, _UsedEdges,_Visited, 0):-
+    %writeln("END CASE 3: Q empty..."),
     %writeln(""),
     !.
 
-% If head is already visited, move on to the next in the queue 
-dfsCutSearch([Head | Tail], N, ChosenPositions, EdgesFoundSoFar, Visited, Result):-
-    member(Head, Visited),
-    %write("already visited... : "),
-    %writeln(Head),
-    dfsCutSearch(Tail, N, ChosenPositions, EdgesFoundSoFar, Visited, Result),
-    !.
 
 %If the current head is on an edge, add one to the edges EdgesFoundSoFar
-dfsCutSearch([Head | Tail], N, ChosenPositions, EdgesFoundSoFar,Visited, Result):-
-    %witeln("dfs 3"),
+dfsCutSearch([(Head,From) | Tail], N, ChosenPositions, EdgesFoundSoFar,UsedEdges,Visited, Result):-
+    %writeln("dfs 3"),
     calcNewEdgesSoFar(Head, N, EdgesFoundSoFar, NewEdgesSoFar),
-    %wite('new edges: '),
-    %wite(NewEdgesSoFar),
-    %wite(" from pos: "),
-    %witeln(Head),
+    %write('new edges: '),
+    %write(NewEdgesSoFar),
+    %write(" HEAD: "),
+    %writeln(Head),
+    %write("FROM:"),
+    %writeln(Head),
+    %write("UsedEdges:"),
+    %writeln(UsedEdges),
 
-    findAllPositionsToExplore(ChosenPositions, Head, Neighbors),
-    %wite('Neighbors:'),
-    %witeln(Neighbors),
+    findAllPositionsToExplore(ChosenPositions, UsedEdges, Head, Neighbors),
+    %write('Neighbors:'),
+    %writeln(Neighbors),
 
-    append(Tail, Neighbors, Queue), 
-    dfsCutSearch(Queue, N, ChosenPositions, NewEdgesSoFar, [Head|Visited], Result),
+    append(Neighbors, Tail, Queue),
+    dfsCutSearch(Queue, N, ChosenPositions, NewEdgesSoFar, [(Head,From)|UsedEdges],[Head|Visited], Result),
     !.
-
 
 calcNewEdgesSoFar(Pos, N, EdgesSoFar,NewEdgesSoFar):-
     isOnEdge(Pos,N),
