@@ -104,7 +104,7 @@ dfsCutSearch([(Head,From) | Tail], N, ChosenPositions, EdgesFoundSoFar,UsedEdges
     %write('Neighbors:'),
     %writeln(Neighbors),
 
-    append(Neighbors, Tail, Queue),
+    append( Tail,Neighbors, Queue),
     dfsCutSearch(Queue, N, ChosenPositions, NewEdgesSoFar, [(Head,From)|UsedEdges],[Head|Visited], Result),
     !.
 
