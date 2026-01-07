@@ -28,17 +28,16 @@ findPossibleSolution(Positions, PositionsToZero):-
     append(RowList, ColumnList, AllRowsAndColumns),
     maplist(countInList, AllRowsAndColumns, AllCountMaps),
     maplist(findDuplicatePositions, AllRowsAndColumns, AllDuplicateLists),
-    solveAll(AllDuplicateLists, AllCountMaps, [], PositionsToZero).
+    maplist(dupValuesOnly([]), AllDuplicateLists, AllDupNums),
+    solveAll(AllDuplicateLists, AllCountMaps, AllDupNums, [], PositionsToZero).
 
 
-solveAll([],[], Result, Result).
+solveAll([],[],[], Result, Result).
 
-solveAll([Head|Tail], [HCm| TCm], ChosenSoFar, Result):-
-    dupValuesOnly(Head, [], DupNums),
-    recursivelySolveRowOrColumn(ChosenSoFar, HCm, DupNums, [], Chosen ,Head),
+solveAll([Head|Tail], [HCm| TCm], [HDupNums | TDupNums], ChosenSoFar, Result):-
+    recursivelySolveRowOrColumn(ChosenSoFar, HCm, HDupNums, [], Chosen ,Head),
     ord_union(ChosenSoFar, Chosen, NewChosen),
-    solveAll(Tail,TCm, NewChosen, Result).
-
+    solveAll(Tail,TCm, TDupNums, NewChosen, Result).
 
 % gives you the indices as pairs (X,Y) that have a nonzero value at the board
 allPositionsWithValue(Board, PositionsWithValue) :-
@@ -46,14 +45,18 @@ allPositionsWithValue(Board, PositionsWithValue) :-
 
 %IMPORTANT: the list in which you check needs to be (X,Y) only, NOT (X,Y,V)
 notNextToOther((X,Y),AllWithoutValue):-
-    XNext is X + 1,
     XPrev is X -1,
-    YNext is Y+1,
-    YPrev is Y-1,
-    (\+ ord_memberchk((XNext,Y),AllWithoutValue)),
     (\+ ord_memberchk((XPrev,Y),AllWithoutValue)),
-    (\+ ord_memberchk((X,YNext),AllWithoutValue)),
-    (\+ ord_memberchk((X,YPrev),AllWithoutValue)).
+
+    YPrev is Y-1,
+    (\+ ord_memberchk((X,YPrev),AllWithoutValue)),
+
+    XNext is X + 1,
+    (\+ ord_memberchk((XNext,Y),AllWithoutValue)),
+
+    YNext is Y+1,
+    (\+ ord_memberchk((X,YNext),AllWithoutValue)).
+
 
 
 duplicatesInDict(Dict) :- 
@@ -67,8 +70,9 @@ recursivelySolveRowOrColumn(_,_,[],Result,Result,_):-
 recursivelySolveRowOrColumn(AlreadyZerodInOther,CountMap,DupNums, ChosenZeros, Result,[(X,Y,V)|Tail]) :-
     CountLeft = CountMap.get(V, 0),
     CountLeft > 1,
+        notNextToOther((X,Y), AlreadyZerodInOther),
     notNextToOther((X,Y), ChosenZeros),
-    notNextToOther((X,Y), AlreadyZerodInOther),
+
 
     %We can pick this one as a zero!
     NewCount is CountLeft - 1, 

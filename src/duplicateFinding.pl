@@ -10,11 +10,11 @@ positionIsDuplicateAccordingToDict(Dict, (_,_,V)) :-
     Count > 1.
 
 
-dupValuesOnly([],Result, Result).
+dupValuesOnly(Result, [], Result).
 
-dupValuesOnly( [ (_,_,V) | Tail ],SoFar, Result):-
+dupValuesOnly( SoFar, [ (_,_,V) | Tail ], Result):-
     ord_add_element(SoFar,V, NewSoFar),
-    dupValuesOnly(Tail, NewSoFar,Result ).
+    dupValuesOnly(NewSoFar, Tail,Result ).
 
 
 %Finds the duplicate positions in list of ALL positions.
