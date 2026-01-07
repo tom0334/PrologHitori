@@ -36,9 +36,16 @@ findPossibleSolution(Board, Positions, PositionsToZero):-
 
 solveAll(_Board, [],[],[], _N, Result, Result).
 
-solveAll(Board, [Head|Tail], [HCm| TCm], [HDupNums | TDupNums], N, ChosenSoFar, Result):-
-    recursivelySolveRowOrColumn(ChosenSoFar, HCm, HDupNums, [], Chosen ,Head),
-    %TODO Figure out why chosen sometimes has elements that were already chosen?
+%params:
+%Board: the board just for debugging purposes.
+% [RowsOrColumns]: just each row and each column in a list.
+% [Countmaps]: the countmaps for the amount of times each number occurs in a the row or column
+% [Dupnums] all duplicate numbers only in each row. This may contain numbers that are already solved, but that is okay. Testing found that to be better than sorting them out again.
+% N: puzzle size 
+% ChosenSoFar: a bag for the currently chosen positions.
+% Result: Will be unified with result when done: a list of all positions to make zero
+solveAll(Board, [Head|Tail], [HCm| TCm], [_HDupNums | TDupNums], N, ChosenSoFar, Result):-
+    recursivelySolveRowOrColumn(ChosenSoFar, HCm, _HDupNums, [], Chosen ,Head),
     ord_union(ChosenSoFar, Chosen, NewChosen),
 
     %translateToBoard(Board, NewChosen, SolutionBoard),
