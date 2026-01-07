@@ -44,8 +44,8 @@ solveAll(_Board, [],[],[], _N, Result, Result).
 % N: puzzle size 
 % ChosenSoFar: a bag for the currently chosen positions.
 % Result: Will be unified with result when done: a list of all positions to make zero
-solveAll(Board, [Head|Tail], [HCm| TCm], [_HDupNums | TDupNums], N, ChosenSoFar, Result):-
-    recursivelySolveRowOrColumn(ChosenSoFar, HCm, _HDupNums, [], Chosen ,Head),
+solveAll(Board, [Head|Tail], [HCm| TCm], [HDupNums | TDupNums], N, ChosenSoFar, Result):-
+    recursivelySolveRowOrColumn(ChosenSoFar, HCm, HDupNums, [], Chosen ,Head),
     ord_union(ChosenSoFar, Chosen, NewChosen),
 
     %translateToBoard(Board, NewChosen, SolutionBoard),
