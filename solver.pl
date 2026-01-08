@@ -15,11 +15,7 @@ isSolution(Board, SolutionBoard) :- isSolutionZerodPositions(Board, SolutionBoar
 
 isSolutionZerodPositions(Board, SolutionBoard, ZerodPositions) :-
     allPositionsWithValue(Board, AllPositionsWithValue),
-    convertToValueOnlyPositions(AllPositionsWithValue, AllPositionsNoValue),
-
     findPossibleSolution(Board,AllPositionsWithValue, ZerodPositions), 
-    ord_subtract(AllPositionsNoValue, ZerodPositions, NonZerodPositions),
-    allNonZeroConnected(NonZerodPositions),
     translateToBoard(Board, ZerodPositions, SolutionBoard).
 
 
