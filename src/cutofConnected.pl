@@ -39,40 +39,47 @@ findConnectedPathsToEdges([_ | StartT], N, ChosenPositions, IsConnected) :-
     findConnectedPathsToEdges(StartT, N, ChosenPositions, IsConnected).
 
 
-%If the current head is on an edge, add one to the edges EdgesFoundSoFar
-dfsCutSearch([(Head,From) | Tail], N, ChosenPositions, EdgesFoundSoFar,UsedEdges,Visited, Result):-
+
+%If the current edge is already used, that means we already considered this edge, so we can do nothing and continue...
+dfsCutSearch([(Head,From) | Tail], N, ChosenPositions, SidesOfBoardFoundSoFar,UsedEdges,Visited, Result):-
     member( (From, Head), UsedEdges),
-    dfsCutSearch(Tail, N, ChosenPositions, EdgesFoundSoFar, UsedEdges,Visited, Result),
+    dfsCutSearch(Tail, N, ChosenPositions, SidesOfBoardFoundSoFar, UsedEdges,Visited, Result),
     !.
 
 
-%end case 1: when we find an edge when we already found one, we are done, and can return true
+%End case 1: when we encounter a position on the side of the board, AND  when we already found one before, we are done!
+% we know for sure there is a path from start to two sides, so there is a cutof path!
 dfsCutSearch( [ (Head,_From) | _Tail], N, _ChosenPositions, 1 , _UsedEdges,_Visited, 2):-
     isOnEdge(Head,N),
     !.
 
-dfsCutSearch([(Head,_From) | _], _N, _ChosenPositions, _EdgesFoundSoFar, _UsedEdges,Visited, 2):-
+%End case 2: when we encounter a position that was already visited, that means we found a cycle!
+% So there is at least white element not connected to the rest!
+dfsCutSearch([(Head,_From) | _], _N, _ChosenPositions, _SidesOfBoardFoundSoFar, _UsedEdges,Visited, 2):-
     member(Head, Visited),
     !.
 
-% End case 1: when the queue is empty, we can say we did NOT find a cutting path
-dfsCutSearch([], _N, _ChosenPositions, _EdgesFoundSoFar, _UsedEdges,_Visited, 0):-
+% End case 3: when the queue is empty, we can say we did NOT find a cutting path
+dfsCutSearch([], _N, _ChosenPositions, _SidesOfBoardFoundSoFar, _UsedEdges,_Visited, 0):-
     !.
 
 
-%If the current head is on an edge, add one to the edges EdgesFoundSoFar
-dfsCutSearch([(Head,From) | Tail], N, ChosenPositions, EdgesFoundSoFar,UsedEdges,Visited, Result):-
-    calcNewEdgesSoFar(Head, N, EdgesFoundSoFar, NewEdgesSoFar),
+%Regular case: increment the counter for sidesOfBoard found if needed, find all neigbouring edges to explore, and call yourself recursively.
+dfsCutSearch([(Head,From) | Tail], N, ChosenPositions, SidesOfBoardFoundSoFar,UsedEdges,Visited, Result):-
+    calcNewSidesOfBoardFoundSoFar(Head, N, SidesOfBoardFoundSoFar, NewSidesOfBoardFoundSoFar),
     findAllPositionsToExplore(ChosenPositions, Head, Neighbors),
     append(Tail, Neighbors, Queue),
-    dfsCutSearch(Queue, N, ChosenPositions, NewEdgesSoFar, [(Head,From)|UsedEdges],[Head|Visited], Result),
+    dfsCutSearch(Queue, N, ChosenPositions, NewSidesOfBoardFoundSoFar, [(Head,From)|UsedEdges],[Head|Visited], Result),
     !.
 
-calcNewEdgesSoFar(Pos, N, EdgesSoFar,NewEdgesSoFar):-
+
+
+%Adds one to the counter if it is on the edge of the board...
+calcNewSidesOfBoardFoundSoFar(Pos, N, SidesOfBoardFoundSoFar,NewSidesOfBoardFoundSoFar):-
     isOnEdge(Pos,N),
-    NewEdgesSoFar is EdgesSoFar + 1,
+    NewSidesOfBoardFoundSoFar is SidesOfBoardFoundSoFar + 1,
     !.
 
-calcNewEdgesSoFar(_, _, EdgesSoFar,EdgesSoFar).
+calcNewSidesOfBoardFoundSoFar(_, _, EdgesSoFar,EdgesSoFar).
 
 
