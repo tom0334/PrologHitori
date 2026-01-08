@@ -10,94 +10,68 @@ isOnEdge((X,Y),N):-
     (X is N -1,!);
     (Y is N -1,!).
 
-getPositionToExplore(ChosenPositions, From, Adjacent):-
+getPositionToExplore(ChosenPositions, From, (Adjacent,From))  :-
     diagonallyAdjacentPos(From, Adjacent),
-    ord_memberchk(Adjacent,ChosenPositions).
+    ord_memberchk(Adjacent, ChosenPositions).
 
-%Todo see if this is a bottleneck and if we can speed it up using sets or something
-%allAdjacent is a list of all the positions that are adjecent to From that can be found in the list Positions
-findAllPositionsToExplore(ChosenPositions, From, AllAdjacent) :-
-    findall(Adjacent, 
+
+findAllPositionsToExplore(ChosenPositions,  From, AllAdjacentFromInfoPairs) :-
+    findall(
+        Adjacent,
         getPositionToExplore(ChosenPositions, From, Adjacent),
-        AllAdjacent
+        AllAdjacentFromInfoPairs
     ).
 
 %%%%%%%%%%%%%%%
 
-%TODO also detect cases where the zero forms a loop around a spot, closing it in.
-% These are more rare, so i guess it still better to use both for now.
-%example:
-%    0 
-%  0 5 0
-%    0
+isStillConnectedFast(StartPositions, N, ChosenPositions) :-
+    \+ (
+        member(Start, StartPositions),
+        dfsCutSearch([(Start,Start)], N, ChosenPositions, 0,[],[], Result),
+        Result = true
+    ).
 
-isStillConnectedFast(Chosen, N, ChosenSoFar):-
-        %write("Chosen:"),
-        %writeln(Chosen),
-        %write("ChosenSofar"),
-        %writeln(ChosenSoFar),
-    \+(findConnectedPathsToEdges(Chosen, N, ChosenSoFar, true)).
 
-findConnectedPathsToEdges([StartH | _StartT], N, ChosenPositions, true) :-
-    %write("searching from: "),
-    %writeln(StartH),
-    dfsCutSearch([StartH], N, ChosenPositions, 0,[], Result),
-    Result = 2,
-    %writeln("Conncected found!"),
+%If the current edge is already used, that means we already considered this edge, so we can do nothing and continue...
+dfsCutSearch([(Head,From) | Tail], N, ChosenPositions, SidesOfBoardFoundSoFar,UsedEdges,Visited, Result):-
+    member( (From, Head), UsedEdges),
+    dfsCutSearch(Tail, N, ChosenPositions, SidesOfBoardFoundSoFar, UsedEdges,Visited, Result),
     !.
 
-findConnectedPathsToEdges([_ | StartT], N, ChosenPositions, IsConnected) :-
-    findConnectedPathsToEdges(StartT, N, ChosenPositions, IsConnected).
 
-
-
-
-%end case 2: when we find an edge when we already found one, we are done, and can return true
-dfsCutSearch([Head | _Tail], N, _ChosenPositions, 1 , Visited, 2):-
+%End case 1: when we encounter a position on the side of the board, AND  when we already found one before, we are done!
+% we know for sure there is a path from start to two sides, so there is a cutof path!
+dfsCutSearch( [ (Head,_From) | _Tail], N, _ChosenPositions, 1 , _UsedEdges,_Visited, true):-
     isOnEdge(Head,N),
-    \+ member(Head, Visited),
-    %write("END CASE 2: CONNECTION FOUND "),
-    %writeln(Head),
-    %writeln(""),
     !.
 
-% End case 1: when the queue is empty, we can say we did NOT find a cutting path
-dfsCutSearch([], _N, _ChosenPositions, _EdgesFoundSoFar, _Visited, 0):-
-    %writeln("END CASE 1: Q empty..."),
-    %writeln(""),
-    !.
-
-% If head is already visited, move on to the next in the queue 
-dfsCutSearch([Head | Tail], N, ChosenPositions, EdgesFoundSoFar, Visited, Result):-
+%End case 2: when we encounter a position that was already visited, that means we found a cycle!
+% So there is at least white element not connected to the rest!
+dfsCutSearch([(Head,_From) | _], _N, _ChosenPositions, _SidesOfBoardFoundSoFar, _UsedEdges,Visited, true):-
     member(Head, Visited),
-    %write("already visited... : "),
-    %writeln(Head),
-    dfsCutSearch(Tail, N, ChosenPositions, EdgesFoundSoFar, Visited, Result),
     !.
 
-%If the current head is on an edge, add one to the edges EdgesFoundSoFar
-dfsCutSearch([Head | Tail], N, ChosenPositions, EdgesFoundSoFar,Visited, Result):-
-    %witeln("dfs 3"),
-    calcNewEdgesSoFar(Head, N, EdgesFoundSoFar, NewEdgesSoFar),
-    %wite('new edges: '),
-    %wite(NewEdgesSoFar),
-    %wite(" from pos: "),
-    %witeln(Head),
+% End case 3: when the queue is empty, we can say we did NOT find a cutting path
+dfsCutSearch([], _N, _ChosenPositions, _SidesOfBoardFoundSoFar, _UsedEdges,_Visited, false):-
+    !.
 
+
+%Regular case: increment the counter for sidesOfBoard found if needed, find all neigbouring edges to explore, and call yourself recursively.
+dfsCutSearch([(Head,From) | Tail], N, ChosenPositions, SidesOfBoardFoundSoFar,UsedEdges,Visited, Result):-
+    calcNewSidesOfBoardFoundSoFar(Head, N, SidesOfBoardFoundSoFar, NewSidesOfBoardFoundSoFar),
     findAllPositionsToExplore(ChosenPositions, Head, Neighbors),
-    %wite('Neighbors:'),
-    %witeln(Neighbors),
-
-    append(Tail, Neighbors, Queue), 
-    dfsCutSearch(Queue, N, ChosenPositions, NewEdgesSoFar, [Head|Visited], Result),
+    append(Tail, Neighbors, Queue),
+    dfsCutSearch(Queue, N, ChosenPositions, NewSidesOfBoardFoundSoFar, [(Head,From)|UsedEdges],[Head|Visited], Result),
     !.
 
 
-calcNewEdgesSoFar(Pos, N, EdgesSoFar,NewEdgesSoFar):-
+
+%Adds one to the counter if it is on the edge of the board...
+calcNewSidesOfBoardFoundSoFar(Pos, N, SidesOfBoardFoundSoFar,NewSidesOfBoardFoundSoFar):-
     isOnEdge(Pos,N),
-    NewEdgesSoFar is EdgesSoFar + 1,
+    NewSidesOfBoardFoundSoFar is SidesOfBoardFoundSoFar + 1,
     !.
 
-calcNewEdgesSoFar(_, _, EdgesSoFar,EdgesSoFar).
+calcNewSidesOfBoardFoundSoFar(_, _, EdgesSoFar,EdgesSoFar).
 
 
