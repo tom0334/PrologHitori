@@ -24,20 +24,12 @@ findAllPositionsToExplore(ChosenPositions,  From, AllAdjacentFromInfoPairs) :-
 
 %%%%%%%%%%%%%%%
 
-
-%TODO: see if we can get rid of the overhead of this predicate. It does almost nothing and is called very often
-
-isStillConnectedFast(Chosen, N, ChosenSoFar):-
-    \+(findConnectedPathsToEdges(Chosen, N, ChosenSoFar, true)).
-
-findConnectedPathsToEdges([StartH | _StartT], N, ChosenPositions, true) :-
-    dfsCutSearch([(StartH,StartH)], N, ChosenPositions, 0,[],[], Result),
-    Result >= 2,
-    !.
-
-findConnectedPathsToEdges([_ | StartT], N, ChosenPositions, IsConnected) :-
-    findConnectedPathsToEdges(StartT, N, ChosenPositions, IsConnected).
-
+isStillConnectedFast(StartPositions, N, ChosenPositions) :-
+    \+ (
+        member(Start, StartPositions),
+        dfsCutSearch([(Start,Start)], N, ChosenPositions, 0,[],[], Result),
+        Result = true
+    ).
 
 
 %If the current edge is already used, that means we already considered this edge, so we can do nothing and continue...
@@ -49,18 +41,18 @@ dfsCutSearch([(Head,From) | Tail], N, ChosenPositions, SidesOfBoardFoundSoFar,Us
 
 %End case 1: when we encounter a position on the side of the board, AND  when we already found one before, we are done!
 % we know for sure there is a path from start to two sides, so there is a cutof path!
-dfsCutSearch( [ (Head,_From) | _Tail], N, _ChosenPositions, 1 , _UsedEdges,_Visited, 2):-
+dfsCutSearch( [ (Head,_From) | _Tail], N, _ChosenPositions, 1 , _UsedEdges,_Visited, true):-
     isOnEdge(Head,N),
     !.
 
 %End case 2: when we encounter a position that was already visited, that means we found a cycle!
 % So there is at least white element not connected to the rest!
-dfsCutSearch([(Head,_From) | _], _N, _ChosenPositions, _SidesOfBoardFoundSoFar, _UsedEdges,Visited, 2):-
+dfsCutSearch([(Head,_From) | _], _N, _ChosenPositions, _SidesOfBoardFoundSoFar, _UsedEdges,Visited, true):-
     member(Head, Visited),
     !.
 
 % End case 3: when the queue is empty, we can say we did NOT find a cutting path
-dfsCutSearch([], _N, _ChosenPositions, _SidesOfBoardFoundSoFar, _UsedEdges,_Visited, 0):-
+dfsCutSearch([], _N, _ChosenPositions, _SidesOfBoardFoundSoFar, _UsedEdges,_Visited, false):-
     !.
 
 
