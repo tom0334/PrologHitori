@@ -15,7 +15,7 @@ isSolution(Board, SolutionBoard) :- isSolutionZerodPositions(Board, SolutionBoar
 
 isSolutionZerodPositions(Board, SolutionBoard, ZerodPositions) :-
     allPositionsWithValue(Board, AllPositionsWithValue),
-    findSolution(Board,AllPositionsWithValue, ZerodPositions), 
+    findSolution(AllPositionsWithValue, ZerodPositions), 
     translateToBoard(Board, ZerodPositions, SolutionBoard).
 
 %finds a solution to a hitori puzzle
