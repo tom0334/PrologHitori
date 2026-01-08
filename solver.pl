@@ -29,7 +29,7 @@ findPossibleSolution(Board, Positions, PositionsToZero):-
     length(ColumnList, N),
     append(RowList, ColumnList, AllRowsAndColumns),
     maplist(countInList, AllRowsAndColumns, AllCountMaps),
-    maplist(findDuplicatePositions, AllRowsAndColumns, AllDuplicateLists),
+    maplist(findDuplicatePositions, AllRowsAndColumns, AllCountMaps, AllDuplicateLists),
     maplist(dupValuesOnly([]), AllDuplicateLists, AllDupNums),
     solveAll(Board,AllDuplicateLists,AllCountMaps,AllDupNums, N, [], PositionsToZero).
 

@@ -1,8 +1,7 @@
 %Finding duplicate positions in the board
 %%%%%%%%%%
 
-findDuplicatePositions(PositionList, DuplicatesOnly):-
-    countInList(PositionList, Dict),
+findDuplicatePositions(PositionList, Dict, DuplicatesOnly):-
     include(positionIsDuplicateAccordingToDict(Dict), PositionList, DuplicatesOnly).
 
 positionIsDuplicateAccordingToDict(Dict, (_,_,V)) :-
