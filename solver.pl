@@ -15,43 +15,41 @@ isSolution(Board, SolutionBoard) :- isSolutionZerodPositions(Board, SolutionBoar
 
 isSolutionZerodPositions(Board, SolutionBoard, ZerodPositions) :-
     allPositionsWithValue(Board, AllPositionsWithValue),
-    findPossibleSolution(Board,AllPositionsWithValue, ZerodPositions), 
+    findSolution(AllPositionsWithValue, ZerodPositions), 
     translateToBoard(Board, ZerodPositions, SolutionBoard).
 
-
-findPossibleSolution(Board, Positions, PositionsToZero):-
+%finds a solution to a hitori puzzle
+%Positions is a list of all positions in the board in the (X,Y,V) form
+%positionsToZero is an ord_set of all positions to mark as black.
+findSolution(Positions, PositionsToZero):-
     allRows(Positions, RowList),
     allColumns(Positions, ColumnList),
     length(ColumnList, N),
     append(RowList, ColumnList, AllRowsAndColumns),
     maplist(countInList, AllRowsAndColumns, AllCountMaps),
-    maplist(findDuplicatePositions, AllRowsAndColumns, AllDuplicateLists),
+    maplist(findDuplicatePositions, AllRowsAndColumns, AllCountMaps, AllDuplicateLists),
     maplist(dupValuesOnly([]), AllDuplicateLists, AllDupNums),
-    solveAll(Board,AllDuplicateLists,AllCountMaps,AllDupNums, N, [], PositionsToZero).
+    solveAll(AllDuplicateLists,AllCountMaps,AllDupNums, N, [], PositionsToZero).
 
 
-solveAll(_Board, [],[],[], _N, Result, Result).
+
 
 %params:
-%Board: the board just for debugging purposes.
-% [RowsOrColumns]: just each row and each column in a list.
+% [DuplicateLists]: ONLY the duplicate positions (X,Y,V) for each row and column. So the first element is a list of all duplicates in the first row
 % [Countmaps]: the countmaps for the amount of times each number occurs in a the row or column
-% [Dupnums] all duplicate numbers only in each row. This may contain numbers that are already solved, but that is okay. Testing found that to be better than sorting them out again.
+% [Dupnums] all duplicate numbers only (V) in each row. This may contain numbers that are already solved, but that is okay. Testing found that to be better than sorting them out again.
 % N: puzzle size 
 % ChosenSoFar: a bag for the currently chosen positions.
 % Result: Will be unified with result when done: a list of all positions to make zero
-solveAll(Board, [Head|Tail], [HCm| TCm], [HDupNums | TDupNums], N, ChosenSoFar, Result):-
-    recursivelySolveRowOrColumn(ChosenSoFar, HCm, HDupNums, [], Chosen ,Head),
+
+%end case: when the first 3 params are empty lists, that means that we solved all rows and columns!
+solveAll([],[],[], _N, Result, Result).
+
+solveAll([HDupPositions|TDupPositions], [HCm| TCm], [HDupNums | TDupNums], N, ChosenSoFar, Result):-
+    recursivelySolveRowOrColumn(ChosenSoFar, HCm, HDupNums, [], Chosen ,HDupPositions),
     ord_union(ChosenSoFar, Chosen, NewChosen),
-
-    %translateToBoard(Board, NewChosen, SolutionBoard),
-    %writeln(Board),
-    %writeln(""),
-    %maplist(writeln,SolutionBoard),
-    %writeln(""),
-
     isStillConnectedFast(Chosen, N, NewChosen),
-    solveAll(Board,Tail,TCm,TDupNums,N, NewChosen, Result).
+    solveAll(TDupPositions, TCm, TDupNums, N, NewChosen, Result).
 
 
 % gives you the indices as pairs (X,Y) that have a nonzero value at the board
@@ -80,10 +78,10 @@ duplicatesInDict(Dict) :-
     V > 1.  
 
 
-recursivelySolveRowOrColumn(_,_,[],Result,Result,_):-
+recursivelySolveRowOrColumn(_AlreadyZerodInOther,_CountMap,[],Result,Result,_DuplicatePositions):-
     !.
 
-recursivelySolveRowOrColumn(AlreadyZerodInOther,CountMap,DupNums, ChosenZeros, Result,[(X,Y,V)|Tail]) :-
+recursivelySolveRowOrColumn(AlreadyZerodInOther,CountMap,DupNums, ChosenZeros, Result,[(X,Y,V)|TDuplicatePositions]) :-
     CountLeft = CountMap.get(V, 0),
     CountLeft > 1,
         notNextToOther((X,Y), AlreadyZerodInOther),
@@ -100,11 +98,11 @@ recursivelySolveRowOrColumn(AlreadyZerodInOther,CountMap,DupNums, ChosenZeros, R
     ord_add_element(ChosenZeros, (X,Y), NewChosenZeros),
     put_dict(V, CountMap, NewCount, NewCountMap),
 
-    recursivelySolveRowOrColumn(AlreadyZerodInOther, NewCountMap,NewDupNums, NewChosenZeros, Result, Tail).
+    recursivelySolveRowOrColumn(AlreadyZerodInOther, NewCountMap,NewDupNums, NewChosenZeros, Result, TDuplicatePositions).
 
 
-recursivelySolveRowOrColumn(AlreadyZerodInOther,CountMap,DupNums, ChosenZeros, Result,[(_,_,_)|Tail]) :-
-    recursivelySolveRowOrColumn(AlreadyZerodInOther, CountMap,DupNums, ChosenZeros, Result, Tail).
+recursivelySolveRowOrColumn(AlreadyZerodInOther,CountMap,DupNums, ChosenZeros, Result,[(_,_,_)|TDuplicatePositions]) :-
+    recursivelySolveRowOrColumn(AlreadyZerodInOther, CountMap,DupNums, ChosenZeros, Result, TDuplicatePositions).
 
 
 
