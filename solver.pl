@@ -60,11 +60,12 @@ allPositionsWithValue(Board, PositionsWithValue) :-
 
 %IMPORTANT: the list in which you check needs to be (X,Y) only, NOT (X,Y,V)
 notNextToOther((X,Y),AllWithoutValue):-
-    XPrev is X -1,
-    (\+ ord_memberchk((XPrev,Y),AllWithoutValue)),
 
     YPrev is Y-1,
     (\+ ord_memberchk((X,YPrev),AllWithoutValue)),
+
+    XPrev is X -1,
+    (\+ ord_memberchk((XPrev,Y),AllWithoutValue)),
 
     XNext is X + 1,
     (\+ ord_memberchk((XNext,Y),AllWithoutValue)),
