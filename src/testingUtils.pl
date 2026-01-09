@@ -1,17 +1,23 @@
-isSolutionAndWrite(Board,N,Seed, OutputFile, SolutionBoard, SolutionZerod):-
+isSolutionAndWrite(Board,N,Seed, OutputFile, Solution):-
+    writeln("PROLOG: Solving..."),
     call_time(
-        isSolutionZerodPositions(Board, SolutionBoard, SolutionZerod ),
+        isSolutionZerodPositions(Board,Solution),
         TimeDict
     ),
     solverVersion(Version),
     string_concat("Solved by: v", Version, Comment),
-    writeSolution(OutputFile, N,Seed, Comment, Board, SolutionZerod,TimeDict),
+    translateToBoardWithBlackLetter(Board, Solution, SolutionInGenericFormat), 
+    writeSolution(OutputFile, N,Seed, Comment, SolutionInGenericFormat, TimeDict),
+
     %Print some info to the console so you can see live what is happening:
     write("Solved! Took "),
     write(TimeDict.cpu),
     write(" seconds, "),
     write(TimeDict.inferences),
-    writeln(" inferences").
+    writeln(" inferences"),
+    maplist(writeln, SolutionInGenericFormat),
+    writeln(""),
+    writeln(Solution).
 
 
 %Writing board with chosen zeros to solution output file
@@ -31,12 +37,11 @@ boardValueOrBlackedBoardValue((_,_,V), _, V).
 
 
 
-writeSolution(Filename, N, Seed, Comment, Board, Zerod,TimeDict) :-
-    translateToBoardWithBlackLetter(Board,Zerod, SolutionMatrix), 
+writeSolution(Filename, N, Seed, Comment, SolutionInGenericFormat, TimeDict) :-
     open(Filename, write, File),
     writeln(File, N),
     writeln(File, ""),
-    loop_through_list(File, SolutionMatrix),
+    loop_through_list(File, SolutionInGenericFormat),
     writeln(File, ""),
     writeln(File, Seed),
     writeln(File, Comment),
@@ -45,8 +50,6 @@ writeSolution(Filename, N, Seed, Comment, Board, Zerod,TimeDict) :-
     write(File, "#prologInferences="),
     writeln(File, TimeDict.inferences),
     close(File).
-
-
 
 
 %Writes a matrix to a file

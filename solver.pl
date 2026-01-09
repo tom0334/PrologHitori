@@ -10,17 +10,15 @@
 solverVersion("3.0").
 
 %still here for backwards compat, or if you just want to see the board...
-isSolution(Board, SolutionBoard) :- isSolutionZerodPositions(Board, SolutionBoard, _ ).
-
-isSolutionZerodPositions(Board, SolutionBoard, ZerodPositions) :-
-    allPositionsWithValue(Board, AllPositionsWithValue),
-    findSolution(AllPositionsWithValue, ZerodPositions), 
+isSolution(Board, SolutionBoard) :- 
+    isSolutionZerodPositions(Board, ZerodPositions),
     translateToBoard(Board, ZerodPositions, SolutionBoard).
 
+
 %finds a solution to a hitori puzzle
-%Positions is a list of all positions in the board in the (X,Y,V) form
 %positionsToZero is an ord_set of all positions to mark as black.
-findSolution(Positions, PositionsToZero):-
+isSolutionZerodPositions(Board, PositionsToZero) :-
+    allPositionsWithValue(Board, Positions),
     allRows(Positions, RowList),
     allColumns(Positions, ColumnList),
     length(ColumnList, N),
@@ -29,8 +27,6 @@ findSolution(Positions, PositionsToZero):-
     maplist(findDuplicatePositions, AllRowsAndColumns, AllCountMaps, AllDuplicateLists),
     maplist(dupValuesOnly([]), AllDuplicateLists, AllDupNums),
     solveAll(AllDuplicateLists,AllCountMaps,AllDupNums, N, [], PositionsToZero).
-
-
 
 
 %params:

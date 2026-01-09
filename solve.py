@@ -58,9 +58,7 @@ goal = (
     f"N = {n}, "
     f"Seed = \"{puzzleID}\", "
     f"OutputFile = \"{outputFile}\","
-    f"writeln('PROLOG: Solving...'),"
-    f"isSolutionAndWrite(Board,N,Seed, OutputFile, SolutionBoard, _),"
-    f"writeln(SolutionBoard)"
+    f"isSolutionAndWrite(Board,N,Seed, OutputFile, Solution)"
 )
 
 cmd = [
