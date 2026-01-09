@@ -2,13 +2,12 @@
 :- use_module(library(lists)).
 :- include('src/examplePuzzles.pl').
 :- include('src/utils.pl').
-:- include('src/connected.pl').
 :- include('src/duplicateFinding.pl').
 :- include('src/testingUtils.pl').
 :- include('src/cutofConnected.pl').
 
 
-solverVersion("2.0").
+solverVersion("3.0").
 
 %still here for backwards compat, or if you just want to see the board...
 isSolution(Board, SolutionBoard) :- isSolutionZerodPositions(Board, SolutionBoard, _ ).
