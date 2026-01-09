@@ -65,7 +65,8 @@ goal = (
 
 cmd = [
     "swipl",
-    "-q",  #this hides the "Welcome to Swi prolog" text"
+    "-q",  #this hides the "Welcome to Swi prolog" text",
+    "-O", #Enables optimization. Free performance!
     "-f", SOLVER_FILE,
     "-g", goal, #find this goal
     "-t", "halt" #stop after finding the first solution
