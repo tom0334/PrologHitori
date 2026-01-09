@@ -72,12 +72,6 @@ notNextToOther((X,Y),AllWithoutValue):-
     (\+ ord_memberchk((X,YNext),AllWithoutValue)).
 
 
-
-duplicatesInDict(Dict) :- 
-    get_dict(_, Dict, V),
-    V > 1.  
-
-
 recursivelySolveRowOrColumn(_AlreadyZerodInOther,_CountMap,[],Result,Result,_DuplicatePositions):-
     !.
 
