@@ -1,54 +1,7 @@
-%Finding duplicate positions in the board
-%%%%%%%%%%
-
-findDuplicatePositions(PositionList, Dict, DuplicatesOnly):-
-    include(positionIsDuplicateAccordingToDict(Dict), PositionList, DuplicatesOnly).
-
-positionIsDuplicateAccordingToDict(Dict, (_,_,V)) :-
-    get_dict(V, Dict, Count),
-    Count > 1.
+%This file contains predicates for finding duplicates in list in an efficient way
 
 
-dupValuesOnly(Result, [], Result).
-
-dupValuesOnly( SoFar, [ (_,_,V) | Tail ], Result):-
-    ord_add_element(SoFar,V, NewSoFar),
-    dupValuesOnly(NewSoFar, Tail,Result ).
-
-
-%Finds the duplicate positions in list of ALL positions.
-% these duplicates will be split over 3 sets:
-    % those duplicate ONLY in their column
-    % those duplicate ONLY in their Rows
-    % those DUPLICATE IN BOTH their row and column
-allDuplicateSets(AllPositions, RowOnly, ColOnly, InBoth,AllWithoutValue) :-
-    duplicatesInAllRows(AllPositions, DupsInRows),
-    duplicatesInAllColumns(AllPositions, DupsInColumns),
-    ord_intersection(DupsInRows, DupsInColumns, InBoth),
-    ord_subtract(DupsInRows, InBoth, RowOnly),
-    ord_subtract(DupsInColumns, InBoth, ColOnly),
-    ord_union(DupsInRows, DupsInColumns, DupsInAll),
-    convertToValueOnlyPositions(DupsInAll, AllWithoutValue).
-
-
-%finds all duplicates in a list of positions, returns ordered set
-duplicatesInAll(RowsOrColumns, AllDuplicatesSet) :-
-    maplist(findDuplicatePositions, RowsOrColumns, DuplicatesPerSubList),
-    append(DuplicatesPerSubList, AllDuplicatesList),
-    list_to_ord_set(AllDuplicatesList, AllDuplicatesSet).
-
-duplicatesInAllRows(AllPositions, DupsInRows):-
-    allRows(AllPositions, AllRows),
-    duplicatesInAll(AllRows,DupsInRows).
-
-duplicatesInAllColumns(AllPositions, DupsInColumns):-
-    allColumns(AllPositions, AllColumns),
-    duplicatesInAll(AllColumns,DupsInColumns).
-
-
-
-
-% Finding duplicates in a list
+% Finding duplicates in a list by creating a dictonary with the amount of times a number occurs
 %%%%%%%%%%
 %creates a dictionary that has the following values:
 % key: the value of the position
@@ -64,6 +17,19 @@ countOccurancesIn([(_,_,V)|Tail], CountMap, Result):-
     NewCount is OldCount + 1, % 
     put_dict(V, CountMap, NewCount, NewDict),
     countOccurancesIn(Tail, NewDict, Result).
+
+findDuplicatePositions(PositionList, Dict, DuplicatesOnly):-
+    include(positionIsDuplicateAccordingToDict(Dict), PositionList, DuplicatesOnly).
+
+positionIsDuplicateAccordingToDict(Dict, (_,_,V)) :-
+    get_dict(V, Dict, Count),
+    Count > 1.
+
+dupValuesOnly(Result, [], Result).
+
+dupValuesOnly( SoFar, [ (_,_,V) | Tail ], Result):-
+    ord_add_element(SoFar,V, NewSoFar),
+    dupValuesOnly(NewSoFar, Tail,Result ).
 
 positionIsInRowY(Y, (_, RY, _)) :-
     RY = Y.
