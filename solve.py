@@ -6,6 +6,8 @@ import subprocess
 #This python script reads a puzzle file,
 #and then tasks the PROLOG solver with finding a solution.
 
+#IT WAS CREATED WITH SOME HELP BY CHATGPT.
+
 #It will do timing for us, using the PROLOG built in timer.
 #Time only includes solving time!
 #So the time spent starting up Python, PROLOG and reading the file is NOT counted.
