@@ -1,5 +1,5 @@
-isSolutionAndWrite(Board,N,Seed, OutputFile, Solution):-
-    writeln("PROLOG: Solving..."),
+isSolutionAndWrite(Board,N,Seed, OutputFile, Verbose, Solution):-
+    (Verbose = 1, writeln("PROLOG: Solving..."); true),
     call_time(
         isSolutionZerodPositions(Board,Solution),
         TimeDict
@@ -10,14 +10,20 @@ isSolutionAndWrite(Board,N,Seed, OutputFile, Solution):-
     writeSolution(OutputFile, N,Seed, Comment, SolutionInGenericFormat, TimeDict),
 
     %Print some info to the console so you can see live what is happening:
-    write("Solved! Took "),
-    write(TimeDict.cpu),
-    write(" seconds, "),
-    write(TimeDict.inferences),
-    writeln(" inferences"),
-    maplist(writeln, SolutionInGenericFormat),
-    writeln(""),
-    writeln(Solution).
+    (Verbose = 1,
+        write("Solved! Took "),
+        write(TimeDict.cpu),
+        write(" seconds, "),
+        write(TimeDict.inferences),
+        writeln(" inferences"),
+        maplist(writeln, SolutionInGenericFormat),
+        writeln(""),
+        writeln(Solution);
+        true
+    ).
+
+
+
 
 
 %Writing board with chosen zeros to solution output file

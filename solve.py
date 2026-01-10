@@ -19,10 +19,13 @@ import subprocess
 # Example Usage: TESTER: 
 # python3 tester.py puzzles/unbiased/10x10/ solve.py testoutput.out -v "prologTime" -v "prologInferences"
 
-
+#SETTINGS:
+VERBOSE = 0 #Set this to zero to disable prints during testing!
 SOLVER_FILE = "solver.pl"
 
 
+
+#BEGIN SCRIPT:
 if(len(sys.argv) < 2):
 	print("ERROR: no puzzle passed. USAGE: ./solve.py PATH_TO_PUZZLE") 
 	sys.exit(1)
@@ -31,7 +34,6 @@ path = sys.argv[1]
 if not os.path.isfile(path):
     print("ERROR: puzzle file not found. Does it exist?")
     sys.exit(1)
-
 
 with open(sys.argv[1], "r") as f:
     lines = [line.strip() for line in f if line.strip()]
@@ -47,7 +49,8 @@ puzzleFileNameWithExtension =  os.path.basename(path)
 puzzleID = os.path.splitext(puzzleFileNameWithExtension)[0]
 
 
-print(f"\n\nRead {n}X{n} puzzle: {puzzleID}")
+if(VERBOSE):
+    print(f"\n\nRead {n}X{n} puzzle: {puzzleID}")
 
 outputDir = os.path.dirname(path)
 outputFileName = puzzleID + ".singlessol"
@@ -56,9 +59,10 @@ outputFile = os.path.join(outputDir, outputFileName)
 goal = (
     f"Board = {matrix}, "
     f"N = {n}, "
+    f"Verbose = {VERBOSE},"
     f"Seed = \"{puzzleID}\", "
     f"OutputFile = \"{outputFile}\","
-    f"isSolutionAndWrite(Board,N,Seed, OutputFile, Solution)"
+    f"isSolutionAndWrite(Board,N,Seed, OutputFile, Verbose, Solution)."
 )
 
 cmd = [
