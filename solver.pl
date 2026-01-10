@@ -6,7 +6,7 @@
 :- include('src/duplicateFinding.pl').
 :- include('src/testingUtils.pl').
 :- include('src/cutofConnected.pl').
-
+:- include('src/smarts.pl').
 
 solverVersion("2.0").
 
@@ -25,11 +25,25 @@ findSolution(Positions, PositionsToZero):-
     allRows(Positions, RowList),
     allColumns(Positions, ColumnList),
     length(ColumnList, N),
-    append(RowList, ColumnList, AllRowsAndColumns),
-    maplist(countInList, AllRowsAndColumns, AllCountMaps),
-    maplist(findDuplicatePositions, AllRowsAndColumns, AllCountMaps, AllDuplicateLists),
-    maplist(dupValuesOnly([]), AllDuplicateLists, AllDupNums),
-    solveAll(AllDuplicateLists,AllCountMaps,AllDupNums, N, [], PositionsToZero).
+
+    %Prepare rows
+    maplist(countInList, RowList, AllCountMapsR),
+    maplist(findDuplicatePositions, RowList, AllCountMapsR, AllDuplicateListsR),
+    maplist(filterKnownWhitesRow(N), AllDuplicateListsR, AllSmartDuplicateListsR),
+    maplist(dupValuesOnly([]), AllSmartDuplicateListsR, AllDupNumsR),
+
+    %Prepare columns
+    maplist(countInList, ColumnList, AllCountMapsC),
+    maplist(findDuplicatePositions, ColumnList, AllCountMapsC, AllDuplicateListsC),
+    %TODO:
+    %maplist(filterKnownWhitesColumn, AllDuplicatesListC, AllSmartDuplicateListsC),
+    maplist(dupValuesOnly([]), AllDuplicateListsC, AllDupNumsC),
+
+    solveAll(AllDuplicateListsR,AllCountMapsR,AllDupNumsR, N, [], RowResult),
+    %solve columns:
+
+    solveAll(AllDuplicateListsC,AllCountMapsC,AllDupNumsC, N, RowResult, PositionsToZero).
+
 
 
 
