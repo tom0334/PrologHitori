@@ -22,8 +22,8 @@ import subprocess
 # python3 tester.py puzzles/unbiased/10x10/ solve.py testoutput.out -v "prologTime" -v "prologInferences"
 
 #SETTINGS:
-VERBOSE = 0 #Set this to zero to disable prints during testing!
-SOLVER_FILE = "solver.pl"
+VERBOSE = 1 #Set this to zero to disable prints during testing!
+SOLVER_FILE = "oldSolverTester.pl"
 
 
 
