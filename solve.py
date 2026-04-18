@@ -79,12 +79,14 @@ seed = allLines[seedLine][1:]
 puzzleFileNameWithExtension =  os.path.basename(path)
 puzzleID = os.path.splitext(puzzleFileNameWithExtension)[0]
 
-if(VERBOSE):
-    print(f"\n\nRead {n}X{n} puzzle: {puzzleID}")
 
+# Get the puzzle ID from the filename.
 outputDir = os.path.dirname(path)
 outputFileName = puzzleID + ".singlessol"
 outputFile = os.path.join(outputDir, outputFileName)
+
+if(VERBOSE):
+    print(f"\n\nRead {n}X{n} puzzle: {puzzleID}")
 
 goal = (
     f"Board = {matrix}, "
