@@ -71,7 +71,7 @@ recursivelySolveRowOrColumn(_AlreadyZerodInOther,_CountMap,[],Result,Result,_Dup
     !.
 
 recursivelySolveRowOrColumn(AlreadyZerodInOther,CountMap,DupNums, ChosenZeros, Result,[(X,Y,V)|TDuplicatePositions]) :-
-    CountLeft = CountMap.get(V, 0),
+    get_dict(V, CountMap, CountLeft),
     CountLeft > 1,
         notNextToOther((X,Y), AlreadyZerodInOther),
     notNextToOther((X,Y), ChosenZeros),
