@@ -6,16 +6,19 @@
 :- include('src/testingUtils.pl').
 :- include('src/cutofConnected.pl').
 
+modelVersion("3.0.2").
 
-solverVersion("3.0").
+%This is the main file for HitoriProlog. It can find solutions to a Hitori puzzle. Use the isSolution(Board, SolutionBoard) predicate
+% Alternatively, you can use the runHitorPrologOnFile.py script
 
-%still here for backwards compat, or if you just want to see the board...
+%if you just want to see the solved puzzle board, use this. 
+%Board is a 
 isSolution(Board, SolutionBoard) :- 
     isSolutionZerodPositions(Board, ZerodPositions),
     translateToBoard(Board, ZerodPositions, SolutionBoard).
 
 
-%finds a solution to a hitori puzzle
+%finds a solution to a hitori puzzle, where the solution is a list of positions to mark.
 %positionsToZero is an ord_set of all positions to mark as black.
 isSolutionZerodPositions(Board, PositionsToZero) :-
     allPositionsWithValue(Board, Positions),

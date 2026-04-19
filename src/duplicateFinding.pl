@@ -43,7 +43,7 @@ onlyPositionsInRowY(Positions, Y, Filtered) :-
 onlyPositionsInColumnX(Positions, X, Filtered) :-
     include(positionIsInColumnX(X), Positions, Filtered).
 
-%This is not an efficient way to do this, so please dont use this in performance critial parts of the solver
+%This is not an efficient way to do this, so please dont use this in performance critial parts of the model
 %Just gives you 0 1 2 3if your board is size 4.
 % assumes the board is square!
 allIndices(Positions, Sorted) :-

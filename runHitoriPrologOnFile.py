@@ -3,8 +3,8 @@ import sys
 import os
 import subprocess
 
-#This python script reads a puzzle file,
-#and then tasks the PROLOG solver with finding a solution.
+#This python script reads a .singles puzzle file,
+#and then tasks the PROLOG model with finding a solution.
 
 #It will do timing for us, using the PROLOG built in timer.
 #Time only includes solving time!
@@ -13,19 +13,19 @@ import subprocess
 #the time and inferences will be printed in the solution file as a comment, in the format of #prologTime = X and #prologInferences = X
 
 
-#Example usage of this solve script:
-# python3 solve.py puzzles/unbiased/10x10/ff253783-eb3d-4026-8fae-777c87ef078a.singles
+#Example usage of this script:
+# python3 runHitoriPrologOnFile.py puzzles/unbiased/10x10/ff253783-eb3d-4026-8fae-777c87ef078a.singles
 
 # Example Usage: TESTER: 
-# python3 tester.py puzzles/unbiased/10x10/ solve.py testoutput.out -v "prologTime" -v "prologInferences"
+# python3 tester.py puzzles/unbiased/10x10/ runHitoriPrologOnFile.py testoutput.out -v "prologTime" -v "prologInferences"
 
 #SETTINGS:
 VERBOSE = 1 #Set this to zero to disable prints during testing!
-SOLVER_FILE = "solver.pl"
+MODEL_FILE = "hitoriProlog.pl"
 
 
 if(len(sys.argv) < 2):
-	print("ERROR: no puzzle passed. USAGE: ./solve.py PATH_TO_PUZZLE") 
+	print("ERROR: no puzzle passed. USAGE: ./runHitoriPrologOnFile.py PATH_TO_PUZZLE") 
 	sys.exit(1)
 
 path = sys.argv[1]
@@ -102,7 +102,7 @@ cmd = [
     "swipl",
     "-q",  #this hides the "Welcome to Swi prolog" text",
     "-O", #Enables optimization. Free performance!
-    "-f", SOLVER_FILE,
+    "-f", MODEL_FILE,
     "-g", goal, #find this goal
     "-t", "halt" #stop after finding the first solution
 ]

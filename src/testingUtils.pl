@@ -4,7 +4,7 @@ isSolutionAndWrite(Board,N,Seed, OutputFile, Verbose, Solution):-
         isSolutionZerodPositions(Board,Solution),
         TimeDict
     ),
-    solverVersion(Version),
+    modelVersion(Version),
     string_concat("Solved by: v", Version, Comment),
     translateToBoardWithBlackLetter(Board, Solution, SolutionInGenericFormat), 
     writeSolution(OutputFile, N,Seed, Comment, SolutionInGenericFormat, TimeDict),
