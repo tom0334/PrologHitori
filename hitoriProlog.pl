@@ -5,6 +5,7 @@
 :- include('src/duplicateFinding.pl').
 :- include('src/testingUtils.pl').
 :- include('src/cutofConnected.pl').
+:- include('src/sandwichPair.pl').
 
 modelVersion("3.0.2").
 
@@ -28,8 +29,22 @@ isSolutionZerodPositions(Board, PositionsToZero) :-
     append(RowList, ColumnList, AllRowsAndColumns),
     maplist(countInList, AllRowsAndColumns, AllCountMaps),
     maplist(findDuplicatePositions, AllRowsAndColumns, AllCountMaps, AllDuplicateLists),
-    maplist(dupValuesOnly([]), AllDuplicateLists, AllDupNums),
-    solveAll(AllDuplicateLists,AllCountMaps,AllDupNums, N, [], PositionsToZero).
+    
+    applyRedundantConstraints(N, AllCountMaps, AllDuplicateLists, [], [], AllCountMapsWithRC, AllDuplicateListsWithRC),
+    maplist(dupValuesOnly([]), AllDuplicateListsWithRC, AllDupNums),
+    solveAll(AllDuplicateListsWithRC,AllCountMapsWithRC,AllDupNums, N, [], PositionsToZero).
+
+
+applyRedundantConstraints(_N, [], [], ResCM, ResDL, ResCM, ResDL).
+
+
+applyRedundantConstraints(N, [HCountMap| TCountMaps] , [HDuplicateList | TDuplicateLists], AllResCountMaps, AllResDuplicateLists, CMRes, TLRes):-
+    applyRedundantConstraintsForRowOrColumn(N, HCountMap, HDuplicateList, ResCountMap, ResDuplicateList),
+    applyRedundantConstraints(N, TCountMaps, TDuplicateLists, [ ResCountMap | AllResCountMaps] , [ResDuplicateList | AllResDuplicateLists ], CMRes, TLRes).
+
+applyRedundantConstraintsForRowOrColumn(N, CountMap, DuplicateList, ResCountMap, ResDuplicateList):-
+    sandwichPair(N, CountMap, DuplicateList, ResCountMap, ResDuplicateList).
+
 
 
 %params:
