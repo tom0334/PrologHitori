@@ -29,15 +29,14 @@ isSolutionZerodPositions(Board, PositionsToZero) :-
     append(RowList, ColumnList, AllRowsAndColumns),
     maplist(countInList, AllRowsAndColumns, AllCountMaps),
     maplist(findDuplicatePositions, AllRowsAndColumns, AllCountMaps, AllDuplicateLists),
-    
     applyRedundantConstraints(N, AllCountMaps, AllDuplicateLists, [], [], AllCountMapsWithRC, AllDuplicateListsWithRC),
     maplist(dupValuesOnly([]), AllDuplicateListsWithRC, AllDupNums),
     solveAll(AllDuplicateListsWithRC,AllCountMapsWithRC,AllDupNums, N, [], PositionsToZero).
 
-
+%Base case, unify the bag with the result
 applyRedundantConstraints(_N, [], [], ResCM, ResDL, ResCM, ResDL).
 
-
+%Apply the redundant constraints to every countmap and duplicatelist. Store results in two bags.
 applyRedundantConstraints(N, [HCountMap| TCountMaps] , [HDuplicateList | TDuplicateLists], AllResCountMaps, AllResDuplicateLists, CMRes, TLRes):-
     applyRedundantConstraintsForRowOrColumn(N, HCountMap, HDuplicateList, ResCountMap, ResDuplicateList),
     applyRedundantConstraints(N, TCountMaps, TDuplicateLists, [ ResCountMap | AllResCountMaps] , [ResDuplicateList | AllResDuplicateLists ], CMRes, TLRes).

@@ -1,4 +1,4 @@
-canIgnoreBecauseIsKnownWhite(N, AllDuplicatePositions, (X,Y,V)):-
+isWhiteBecauseSandwichPair(N, AllDuplicatePositions, (X,Y,V)):-
     member((X,Y,V), AllDuplicatePositions),
     leftNeighbour(N,(X,Y,V), (LNX,LNY,LNV)),
     rightNeighbour(N,(X,Y,V), (RNX,RNY,RNV)),
@@ -6,7 +6,7 @@ canIgnoreBecauseIsKnownWhite(N, AllDuplicatePositions, (X,Y,V)):-
     member((RNX, RNY, RNV), AllDuplicatePositions),
     RNV = LNV.
 
-canIgnoreBecauseIsKnownWhite(N, AllDuplicatePositions, (X,Y,V)):-
+isWhiteBecauseSandwichPair(N, AllDuplicatePositions, (X,Y,V)):-
     member((X,Y,V), AllDuplicatePositions),
     upNeigbour(N,(X,Y,V), (UNX,UNY,UNV)),
     downNeighbour(N,(X,Y,V), (DNX,DNY,DNV)),
@@ -39,8 +39,7 @@ downNeighbour( _N, (MeX, MeY, _MeV), (LNX,LNY, _LNV) ):-
 % do NOT change the countmap, we still need to select another one with the same number!
 % This is equivalaent to the recursive solve predicate skipping it.
 sandwichPair(N, CountMap, DuplicatePositions, CountMap, NewDuplicatePositions):-
-    findall(X, canIgnoreBecauseIsKnownWhite(N, DuplicatePositions, X), ToExclude),
-    print(ToExclude),
+    findall(X, isWhiteBecauseSandwichPair(N, DuplicatePositions, X), ToExclude),
     subtract(DuplicatePositions, ToExclude, NewDuplicatePositions).
 
     
