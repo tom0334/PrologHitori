@@ -1,11 +1,13 @@
 :- use_module(library(apply)).
 :- use_module(library(lists)).
 :- include('src/examplePuzzles.pl').
+:- include('src/debugPuzzles.pl').
 :- include('src/utils.pl').
 :- include('src/duplicateFinding.pl').
 :- include('src/testingUtils.pl').
 :- include('src/cutofConnected.pl').
 :- include('src/sandwichPair.pl').
+:- include('src/sandwichTriple.pl').
 
 modelVersion("3.0.2").
 
@@ -41,8 +43,14 @@ applyRedundantConstraints(N, [HCountMap| TCountMaps] , [HDuplicateList | TDuplic
     applyRedundantConstraintsForRowOrColumn(N, HCountMap, HDuplicateList, ResCountMap, ResDuplicateList),
     applyRedundantConstraints(N, TCountMaps, TDuplicateLists, [ ResCountMap | AllResCountMaps] , [ResDuplicateList | AllResDuplicateLists ], CMRes, TLRes).
 
-applyRedundantConstraintsForRowOrColumn(N, CountMap, DuplicateList, ResCountMap, ResDuplicateList):-
-    sandwichPair(N, CountMap, DuplicateList, ResCountMap, ResDuplicateList).
+applyRedundantConstraintsForRowOrColumn(N, CountMap, DuplicateList, CountMap, ResDuplicateList):-
+    sandwichPair(N, CountMap, DuplicateList, KnownWhiteSP),
+    sandwichTriple(N, DuplicateList, KnownWhiteSP, KnownBlackST),
+    write("sandwichPair result (known white): "),
+    writeln(KnownWhiteSP),
+    write("sandwichTriple result (known black): "),
+    writeln(KnownBlackST),
+    subtract(DuplicateList, KnownWhiteSP, ResDuplicateList).
 
 
 

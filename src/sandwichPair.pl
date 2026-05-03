@@ -38,8 +38,7 @@ downNeighbour( _N, (MeX, MeY, _MeV), (LNX,LNY, _LNV) ):-
 % we can remove the one in between from the duplicate positions, as we know it will never be marked. 
 % do NOT change the countmap, we still need to select another one with the same number!
 % This is equivalaent to the recursive solve predicate skipping it.
-sandwichPair(N, CountMap, DuplicatePositions, CountMap, NewDuplicatePositions):-
-    findall(X, isWhiteBecauseSandwichPair(N, DuplicatePositions, X), ToExclude),
-    subtract(DuplicatePositions, ToExclude, NewDuplicatePositions).
+sandwichPair(N, _CountMap, DuplicatePositions, ToExclude):-
+    findall(X, isWhiteBecauseSandwichPair(N, DuplicatePositions, X), ToExclude).
 
     
