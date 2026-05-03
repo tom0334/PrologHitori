@@ -50,14 +50,15 @@ applyRedundantConstraintsForRowOrColumn(N, CountMap, DuplicateList, MarkedSofar,
     sandwichTriple(N, DuplicateList, KnownWhiteSP, KnownBlackST),
     %write("sandwichPair result (known white): "),
     %writeln(KnownWhiteSP),
-    write("sandwichTriple result (known black): "),
-    writeln(KnownBlackST),
+    %write("sandwichTriple result (known black): "),
+    %writeln(KnownBlackST),
     subtract(DuplicateList, KnownWhiteSP, DupListWithoutKnownWhitesSP),
     subtract(DupListWithoutKnownWhitesSP, KnownBlackST, ResDuplicateList),
 
     updateCountMapForKnownBlackPositions(CountMap, KnownBlackST, ResCountMap),
     maplist(stripValue, KnownBlackST, PositionsToMark),
-    append(MarkedSofar, PositionsToMark, MarkedRes).
+    list_to_ord_set(PositionsToMark, PositionsToMarkSet),
+    ord_union(MarkedSofar, PositionsToMarkSet, MarkedRes).
 
 
 updateCountMapForKnownBlackPositions(ResCountMap, [],  ResCountMap).
