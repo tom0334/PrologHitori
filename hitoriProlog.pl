@@ -31,26 +31,45 @@ isSolutionZerodPositions(Board, PositionsToZero) :-
     append(RowList, ColumnList, AllRowsAndColumns),
     maplist(countInList, AllRowsAndColumns, AllCountMaps),
     maplist(findDuplicatePositions, AllRowsAndColumns, AllCountMaps, AllDuplicateLists),
-    applyRedundantConstraints(N, AllCountMaps, AllDuplicateLists, [], [], AllCountMapsWithRC, AllDuplicateListsWithRC),
+    applyRedundantConstraints(N, AllCountMaps, AllDuplicateLists, [], [], [], AllCountMapsWithRC, AllDuplicateListsWithRC, PreMarked),
+    writeln("premarked:"),
+    writeln(PreMarked),
     maplist(dupValuesOnly([]), AllDuplicateListsWithRC, AllDupNums),
-    solveAll(AllDuplicateListsWithRC,AllCountMapsWithRC,AllDupNums, N, [], PositionsToZero).
+    solveAll(AllDuplicateListsWithRC,AllCountMapsWithRC,AllDupNums, N, PreMarked, PositionsToZero).
 
 %Base case, unify the bag with the result
-applyRedundantConstraints(_N, [], [], ResCM, ResDL, ResCM, ResDL).
+applyRedundantConstraints(_N, [], [], ResCM, ResDL, MarkedRes, ResCM, ResDL, MarkedRes).
 
-%Apply the redundant constraints to every countmap and duplicatelist. Store results in two bags.
-applyRedundantConstraints(N, [HCountMap| TCountMaps] , [HDuplicateList | TDuplicateLists], AllResCountMaps, AllResDuplicateLists, CMRes, TLRes):-
-    applyRedundantConstraintsForRowOrColumn(N, HCountMap, HDuplicateList, ResCountMap, ResDuplicateList),
-    applyRedundantConstraints(N, TCountMaps, TDuplicateLists, [ ResCountMap | AllResCountMaps] , [ResDuplicateList | AllResDuplicateLists ], CMRes, TLRes).
+%Apply the redundant constraints to every countmap and duplicatelist,  Store results in two bags.
+applyRedundantConstraints(N, [HCountMap| TCountMaps] , [HDuplicateList | TDuplicateLists], AllResCountMaps, AllResDuplicateLists, MarkedSofar, CMRes, TLRes, MarkedRes):-
+    applyRedundantConstraintsForRowOrColumn(N, HCountMap, HDuplicateList, MarkedSofar, ResCountMap, ResDuplicateList, NewMarkedSoFar),
+    applyRedundantConstraints(N, TCountMaps, TDuplicateLists, [ ResCountMap | AllResCountMaps] , [ResDuplicateList | AllResDuplicateLists ], NewMarkedSoFar, CMRes, TLRes, MarkedRes).
 
-applyRedundantConstraintsForRowOrColumn(N, CountMap, DuplicateList, CountMap, ResDuplicateList):-
+applyRedundantConstraintsForRowOrColumn(N, CountMap, DuplicateList, MarkedSofar, ResCountMap, ResDuplicateList, MarkedRes):-
     sandwichPair(N, CountMap, DuplicateList, KnownWhiteSP),
     sandwichTriple(N, DuplicateList, KnownWhiteSP, KnownBlackST),
-    write("sandwichPair result (known white): "),
-    writeln(KnownWhiteSP),
+    %write("sandwichPair result (known white): "),
+    %writeln(KnownWhiteSP),
     write("sandwichTriple result (known black): "),
     writeln(KnownBlackST),
-    subtract(DuplicateList, KnownWhiteSP, ResDuplicateList).
+    subtract(DuplicateList, KnownWhiteSP, DupListWithoutKnownWhitesSP),
+    subtract(DupListWithoutKnownWhitesSP, KnownBlackST, ResDuplicateList),
+
+    updateCountMapForKnownBlackPositions(CountMap, KnownBlackST, ResCountMap),
+    maplist(stripValue, KnownBlackST, PositionsToMark),
+    append(MarkedSofar, PositionsToMark, MarkedRes).
+
+
+updateCountMapForKnownBlackPositions(ResCountMap, [],  ResCountMap).
+updateCountMapForKnownBlackPositions(Countmap, [HKnownBlack | TKnownBlack], ResCountMap):-
+    decrementValueInCountmap(Countmap, HKnownBlack, NewCountMap),
+    updateCountMapForKnownBlackPositions(NewCountMap, TKnownBlack, ResCountMap).
+    
+
+decrementValueInCountmap(CountMap, (_X,_Y,V), NewCountMap):-
+    get_dict(V, CountMap, CountLeft),
+    NewCount is CountLeft - 1, 
+    put_dict(V, CountMap, NewCount, NewCountMap).
 
 
 
