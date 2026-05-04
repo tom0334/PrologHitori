@@ -32,21 +32,51 @@ isSolutionZerodPositions(Board, PositionsToZero) :-
     append(RowList, ColumnList, AllRowsAndColumns),
     maplist(countInList, AllRowsAndColumns, AllCountMaps),
     maplist(findDuplicatePositions, AllRowsAndColumns, AllCountMaps, AllDuplicateLists),
-    applyRedundantConstraints(N, AllCountMaps, AllDuplicateLists, [], [], [], AllCountMapsWithRC, AllDuplicateListsWithRC, PreMarked),
-    write("premarked:"),
+    
+    applyRCsToCountMapsAndDupLists(N, AllCountMaps, AllDuplicateLists, AllCountMapsWithRC, AllDuplicateListsWithRC, PreMarked),
+    write("Premarked: "),
     writeln(PreMarked),
+    %writeln(AllCountMaps),
+    %writeln(AllCountMapsWithRC),
+    %writeln(AllDuplicateLists),
+    %writeln(AllDuplicateListsWithRC),
+    
     maplist(dupValuesOnly([]), AllDuplicateListsWithRC, AllDupNums),
     solveAll(AllDuplicateListsWithRC,AllCountMapsWithRC,AllDupNums, N, PreMarked, PositionsToZero).
 
+
+
+%Applies all RCs to the countmaps, duplicate lists, and also returns which tiles are preMarked
+applyRCsToCountMapsAndDupLists(N, AllCountMaps, AllDuplicateLists, AllCountMapsWithRC, AllDuplicateListsWithRC, PreMarked):-
+    redundantConstraints(N,AllCountMaps,AllDuplicateLists,[],[],KnownWhiteWithValues,KnownBlackWithValues),
+    writeln("Known white:"),
+    writeln(KnownWhiteWithValues),
+    writeln("Known black:"),
+    writeln(KnownBlackWithValues),
+    list_to_ord_set(KnownBlackWithValues, KnownBlackWithValuesSet),
+    list_to_ord_set(KnownWhiteWithValues, KnownWhiteWithValuesSet),
+    ord_union(KnownWhiteWithValuesSet, KnownBlackWithValuesSet, KnownWithValuesSet),
+    updateAllCountMapsForBlackPositions(AllCountMaps,AllDuplicateLists,KnownWithValuesSet, [], AllCountMapsWithRC),
+    %writeln("Updated count map"),
+    %Remove the values. This may now contain duplicates again, so remove them again.
+    maplist(stripValue,KnownBlackWithValuesSet, KnownBlackWithoutValues),
+    %After removing those duplicates, we know the premarked.
+    list_to_ord_set(KnownBlackWithoutValues, PreMarked),
+    maplist(findDuplicatePositions, AllDuplicateLists, AllCountMapsWithRC, AllDuplicateListsWithRC).
+
+
+
 %Base case, unify the bag with the result
-applyRedundantConstraints(_N, [], [], ResCM, ResDL, MarkedRes, ResCM, ResDL, MarkedRes).
+redundantConstraints(_N, [], [], KnownWhiteBag, KnownBlackBag, KnownWhiteBag, KnownBlackBag).
+
 
 %Apply the redundant constraints to every countmap and duplicatelist,  Store results in two bags.
-applyRedundantConstraints(N, [HCountMap| TCountMaps] , [HDuplicateList | TDuplicateLists], AllResCountMaps, AllResDuplicateLists, MarkedSofar, CMRes, TLRes, MarkedRes):-
-    applyRedundantConstraintsForRowOrColumn(N, HCountMap, HDuplicateList, MarkedSofar, ResCountMap, ResDuplicateList, NewMarkedSoFar),
-    applyRedundantConstraints(N, TCountMaps, TDuplicateLists, [ ResCountMap | AllResCountMaps] , [ResDuplicateList | AllResDuplicateLists ], NewMarkedSoFar, CMRes, TLRes, MarkedRes).
+redundantConstraints(N, [HCountMap| TCountMaps] , [HDuplicateList | TDuplicateLists], KnownWhiteBag, KnownBlackBag, KnownWhiteRes, KnownBlackRes):-
+    redundantConstraintsForRowOrColumn(N, HCountMap, HDuplicateList, KnownWhiteBag, KnownBlackBag, NewKnownWhiteBag, NewKnownBlackBag),
+    redundantConstraints(N, TCountMaps, TDuplicateLists, NewKnownWhiteBag, NewKnownBlackBag, KnownWhiteRes, KnownBlackRes).
 
-applyRedundantConstraintsForRowOrColumn(N, CountMap, DuplicateList, MarkedSofar, ResCountMap, ResDuplicateList, MarkedRes):-
+%Applies all redundant constraints on one row. Gives us the known white known black squares.
+redundantConstraintsForRowOrColumn(N, CountMap, DuplicateList, KnownWhiteSofar, KnownBlackSoFar, KnownWhiteRes, KnownBlackRes):-
     sandwichPair(N, CountMap, DuplicateList, KnownWhiteSP),
     sandwichTriple(N, DuplicateList, KnownWhiteSP, KnownBlackST),
     pairIsolation(N, CountMap, DuplicateList, KnownBlackPI),
@@ -58,24 +88,41 @@ applyRedundantConstraintsForRowOrColumn(N, CountMap, DuplicateList, MarkedSofar,
     %write("sandwichTriple result (known black): "),
     %writeln(KnownBlackST),
 
-    %Todo: move this up one level to apply it to all countmaps and all AllDuplicateLists
-    % right now, it only applies it to the row/column that we found it for, but there is 
-    % always a row or column that could also use this knowledge.
-    append(KnownBlackPI, KnownBlackST, KnownBlack),
+    append(KnownBlackPI, KnownBlackST, AllKnownBlack),
+    append(KnownBlackSoFar, AllKnownBlack, KnownBlackRes),
+    append(KnownWhiteSofar, KnownWhiteSP, KnownWhiteRes),
+    !.
 
-    subtract(DuplicateList, KnownWhiteSP, DupListWithoutKnownWhitesSP),
-    subtract(DupListWithoutKnownWhitesSP, KnownBlack, ResDuplicateList),
-
-    updateCountMapForKnownBlackPositions(CountMap, KnownBlack, ResCountMap),
-    maplist(stripValue, KnownBlack, PositionsToMark),
-    list_to_ord_set(PositionsToMark, PositionsToMarkSet),
-    ord_union(MarkedSofar, PositionsToMarkSet, MarkedRes).
+%different order than regular subtract, useful for when using it with maplist
+removeThisFromList(ToRemove, From, Result):-
+    subtract(From, ToRemove, Result).
 
 
-updateCountMapForKnownBlackPositions(ResCountMap, [],  ResCountMap).
-updateCountMapForKnownBlackPositions(Countmap, [HKnownBlack | TKnownBlack], ResCountMap):-
+updateAllCountMapsForBlackPositions([],[],_KnownBlack, UpdatedCountMapsBag, UpdatedCountMapsBag).
+
+updateAllCountMapsForBlackPositions([HCountMap | TCountMaps], [HDupList | TDupLists], KnownBlack, UpdatedCountMapsBag, UpdatedCountMapsRes):-
+    updateCM(KnownBlack, HDupList, HCountMap, UpdatedCountMap),
+    append(UpdatedCountMapsBag, [UpdatedCountMap], NewUpdatedCountMapsBag),
+    updateAllCountMapsForBlackPositions(TCountMaps, TDupLists, KnownBlack, NewUpdatedCountMapsBag, UpdatedCountMapsRes ).
+
+
+updateCM([],_, ResCountMap, ResCountMap).
+
+updateCM([HKnownBlack | TKnownBlack], DupList, Countmap, ResCountMap):-
+    member(HKnownBlack, DupList),
+    write("Decrementing "),
+    write(HKnownBlack),
+    write(" in "),
+    writeln(DupList),
+
     decrementValueInCountmap(Countmap, HKnownBlack, NewCountMap),
-    updateCountMapForKnownBlackPositions(NewCountMap, TKnownBlack, ResCountMap).
+    updateCM(TKnownBlack, DupList, NewCountMap, ResCountMap),
+    !.
+
+updateCM([_HKnownBlack | TKnownBlack], DupList, CountMap, ResCountMap):-
+    updateCM(TKnownBlack, DupList, CountMap, ResCountMap),
+    !.
+
     
 
 decrementValueInCountmap(CountMap, (_X,_Y,V), NewCountMap):-
