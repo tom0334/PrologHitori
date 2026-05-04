@@ -33,7 +33,7 @@ isSolutionZerodPositions(Board, PositionsToZero) :-
     maplist(countInList, AllRowsAndColumns, AllCountMaps),
     maplist(findDuplicatePositions, AllRowsAndColumns, AllCountMaps, AllDuplicateLists),
     applyRedundantConstraints(N, AllCountMaps, AllDuplicateLists, [], [], [], AllCountMapsWithRC, AllDuplicateListsWithRC, PreMarked),
-    writeln("premarked:"),
+    write("premarked:"),
     writeln(PreMarked),
     maplist(dupValuesOnly([]), AllDuplicateListsWithRC, AllDupNums),
     solveAll(AllDuplicateListsWithRC,AllCountMapsWithRC,AllDupNums, N, PreMarked, PositionsToZero).
@@ -50,17 +50,24 @@ applyRedundantConstraintsForRowOrColumn(N, CountMap, DuplicateList, MarkedSofar,
     sandwichPair(N, CountMap, DuplicateList, KnownWhiteSP),
     sandwichTriple(N, DuplicateList, KnownWhiteSP, KnownBlackST),
     pairIsolation(N, CountMap, DuplicateList, KnownBlackPI),
-    write("Pair isolation res:"),
-    writeln(KnownBlackPI),
+    
+    %write("Pair isolation res:"),
+    %writeln(KnownBlackPI),
     %write("sandwichPair result (known white): "),
     %writeln(KnownWhiteSP),
     %write("sandwichTriple result (known black): "),
     %writeln(KnownBlackST),
-    subtract(DuplicateList, KnownWhiteSP, DupListWithoutKnownWhitesSP),
-    subtract(DupListWithoutKnownWhitesSP, KnownBlackST, ResDuplicateList),
 
-    updateCountMapForKnownBlackPositions(CountMap, KnownBlackST, ResCountMap),
-    maplist(stripValue, KnownBlackST, PositionsToMark),
+    %Todo: move this up one level to apply it to all countmaps and all AllDuplicateLists
+    % right now, it only applies it to the row/column that we found it for, but there is 
+    % always a row or column that could also use this knowledge.
+    append(KnownBlackPI, KnownBlackST, KnownBlack),
+
+    subtract(DuplicateList, KnownWhiteSP, DupListWithoutKnownWhitesSP),
+    subtract(DupListWithoutKnownWhitesSP, KnownBlack, ResDuplicateList),
+
+    updateCountMapForKnownBlackPositions(CountMap, KnownBlack, ResCountMap),
+    maplist(stripValue, KnownBlack, PositionsToMark),
     list_to_ord_set(PositionsToMark, PositionsToMarkSet),
     ord_union(MarkedSofar, PositionsToMarkSet, MarkedRes).
 
