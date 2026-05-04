@@ -24,3 +24,12 @@ sandwichTripleExample2([
     [3,3,3,9,3,3,3], 
     [1,1,1,9,1,1,1]
 ]).
+
+
+% Obviously not a valid puzzle, but useful for testing the RC
+pairIsolationExample([
+    [1,1,9,1], 
+    [4,3,2,1], 
+    [1,2,9,5], 
+    [4,3,9,2] 
+]).

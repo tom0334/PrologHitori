@@ -8,6 +8,7 @@
 :- include('src/cutofConnected.pl').
 :- include('src/sandwichPair.pl').
 :- include('src/sandwichTriple.pl').
+:- include('src/pairIsolation.pl').
 
 modelVersion("3.0.2").
 
@@ -48,6 +49,9 @@ applyRedundantConstraints(N, [HCountMap| TCountMaps] , [HDuplicateList | TDuplic
 applyRedundantConstraintsForRowOrColumn(N, CountMap, DuplicateList, MarkedSofar, ResCountMap, ResDuplicateList, MarkedRes):-
     sandwichPair(N, CountMap, DuplicateList, KnownWhiteSP),
     sandwichTriple(N, DuplicateList, KnownWhiteSP, KnownBlackST),
+    pairIsolation(N, CountMap, DuplicateList, KnownBlackPI),
+    write("Pair isolation res:"),
+    writeln(KnownBlackPI),
     %write("sandwichPair result (known white): "),
     %writeln(KnownWhiteSP),
     %write("sandwichTriple result (known black): "),
