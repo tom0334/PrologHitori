@@ -54,16 +54,24 @@ applyRCsToCountMapsAndDupLists(N, AllCountMaps, AllDuplicateLists, AllCountMapsW
     writeln("Known black:"),
     writeln(KnownBlackWithValues),
     list_to_ord_set(KnownBlackWithValues, KnownBlackWithValuesSet),
-    list_to_ord_set(KnownWhiteWithValues, KnownWhiteWithValuesSet),
-    ord_union(KnownWhiteWithValuesSet, KnownBlackWithValuesSet, KnownWithValuesSet),
-    updateAllCountMapsForBlackPositions(AllCountMaps,AllDuplicateLists,KnownWithValuesSet, [], AllCountMapsWithRC),
-    %writeln("Updated count map"),
-    %Remove the values. This may now contain duplicates again, so remove them again.
-    maplist(stripValue,KnownBlackWithValuesSet, KnownBlackWithoutValues),
-    %After removing those duplicates, we know the premarked.
-    list_to_ord_set(KnownBlackWithoutValues, PreMarked),
-    maplist(findDuplicatePositions, AllDuplicateLists, AllCountMapsWithRC, AllDuplicateListsWithRC).
+    
+    zipped(AllCountMaps, AllDuplicateLists, Pairs),
+    maplist(updateCMAndDupList(KnownBlackWithValuesSet), Pairs, ResultPairs),
+    zipped( AllCountMapsWithRC, AllUpdatedDuplicateLists, ResultPairs),
 
+
+    maplist(removeThisFromList(KnownBlackWithValuesSet), AllUpdatedDuplicateLists, AllDuplicateListsWithoutMarked),
+    maplist(removeThisFromList(KnownWhiteWithValues), AllDuplicateListsWithoutMarked, AllDuplicateListsWithRC),
+    %writeln("Updated count maps and dup lists"),
+    
+    %Remove the values for black tiles. This may now contain duplicates again, so remove them again.
+    maplist(stripValue,KnownBlackWithValuesSet, KnownBlackWithoutValues),
+    %After removing those duplicates, we know the premarked
+    list_to_ord_set(KnownBlackWithoutValues, PreMarked).
+
+zipped([], [], []).
+zipped([X|Xs], [Y|Ys], [(X,Y)|Zs]) :-
+    zipped(Xs, Ys, Zs).
 
 
 %Base case, unify the bag with the result
@@ -97,24 +105,28 @@ redundantConstraintsForRowOrColumn(N, CountMap, DuplicateList, KnownWhiteSofar, 
 removeThisFromList(ToRemove, From, Result):-
     subtract(From, ToRemove, Result).
 
+updateCMAndDupList(KnownBlackWithValuesSet, (CountMap,DupList), (ResCountMap, ResDupList) ):-
+    updateCM(KnownBlackWithValuesSet, DupList,CountMap, ResCountMap),
+    findall(Pos, noLongerNeedsToBeconsidered(ResCountMap, DupList, Pos), PositionsToBeRemoved),
+    %write("Removing: "),
+    %writeln(PositionsToBeRemoved),
+    subtract(DupList, PositionsToBeRemoved, ResDupList).
 
-updateAllCountMapsForBlackPositions([],[],_KnownBlack, UpdatedCountMapsBag, UpdatedCountMapsBag).
+noLongerNeedsToBeconsidered(CountMap, DupList, (X,Y,V)):-
+    member((X,Y,V), DupList ),
+    get_dict(V, CountMap, CountLeft),
+    CountLeft < 2.
 
-updateAllCountMapsForBlackPositions([HCountMap | TCountMaps], [HDupList | TDupLists], KnownBlack, UpdatedCountMapsBag, UpdatedCountMapsRes):-
-    updateCM(KnownBlack, HDupList, HCountMap, UpdatedCountMap),
-    append(UpdatedCountMapsBag, [UpdatedCountMap], NewUpdatedCountMapsBag),
-    updateAllCountMapsForBlackPositions(TCountMaps, TDupLists, KnownBlack, NewUpdatedCountMapsBag, UpdatedCountMapsRes ).
 
 
 updateCM([],_, ResCountMap, ResCountMap).
 
 updateCM([HKnownBlack | TKnownBlack], DupList, Countmap, ResCountMap):-
     member(HKnownBlack, DupList),
-    write("Decrementing "),
-    write(HKnownBlack),
-    write(" in "),
-    writeln(DupList),
-
+    %write("Decrementing "),
+    %write(HKnownBlack),
+    %write(" in "),
+    %writeln(DupList),
     decrementValueInCountmap(Countmap, HKnownBlack, NewCountMap),
     updateCM(TKnownBlack, DupList, NewCountMap, ResCountMap),
     !.
