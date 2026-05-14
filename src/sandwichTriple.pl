@@ -19,9 +19,10 @@ sandwichTripleBlackPositionsAround(N, AllDuplicatePositions, (X,Y,V), BlackPosit
     BlackPositions = [(LNX,LNY,LNV),(RNX,RNY,RNV)].
 
 
-sandwichTriple(N, DuplicatePositions, SandwichPairWhitePositions, SandwichTripleBlackPositions):-
+sandwichTriple(N, DuplicatePositions, SandwichPairWhitePositions, SandwichTripleBlackPositions, SandwichPairWhitePositionsXY):-
     maplist(findBlackPositionsAroundMiddle(N, DuplicatePositions), SandwichPairWhitePositions, Result),
-    flatten(Result, SandwichTripleBlackPositions).
+    flatten(Result, SandwichTripleBlackPositions),
+    findAllWhiteNeigboursOfPositions(N, SandwichTripleBlackPositions, SandwichPairWhitePositionsXY).
 
 findBlackPositionsAroundMiddle(N, DuplicatePositions, WhitePos, BlackPositions):-
     findall(BlackPosForDirection, sandwichTripleBlackPositionsAround(N, DuplicatePositions, WhitePos, BlackPosForDirection), BlackPositions).

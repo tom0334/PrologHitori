@@ -40,7 +40,9 @@ neighbours((_X,Y), (_X2, Y2)):-
 
 
 
-pairIsolation(_N, CountMap, DuplicatePositions, KnownBlack):-
+pairIsolation(N, CountMap, DuplicatePositions, KnownBlack, KnownWhite):-
     findall(Value, valueOccursMoreThanTwoTimes(CountMap,Value), Values),
     maplist(findAllBlackPositionsForValue(DuplicatePositions), Values, BlackPositionLists),
-    flatten(BlackPositionLists, KnownBlack).
+    flatten(BlackPositionLists, KnownBlack),
+    findAllWhiteNeigboursOfPositions(N, KnownBlack, KnownWhite).
+

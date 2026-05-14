@@ -9,7 +9,8 @@
 :- include('src/sandwichPair.pl').
 :- include('src/sandwichTriple.pl').
 :- include('src/pairIsolation.pl').
-:-include('src/redundantConstraints.pl').
+:- include('src/redundantConstraints.pl').
+:- include('src/neighbours.pl').
 
 modelVersion("3.0.2").
 

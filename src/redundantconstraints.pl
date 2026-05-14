@@ -1,8 +1,8 @@
 %Applies all RCs to the countmaps, duplicate lists, and also returns which tiles can be preMarked (known black)
 applyRCsToCountMapsAndDupLists(N, AllCountMaps, AllDuplicateLists, AllCountMapsWithRC, AllDuplicateListsWithRC, PreMarked):-
-    redundantConstraints(N,AllCountMaps,AllDuplicateLists,[],[],KnownWhiteWithValues,KnownBlackWithValues),
+    redundantConstraints(N,AllCountMaps,AllDuplicateLists,[],[],KnownWhiteWithoutValues,KnownBlackWithValues),
     writeln("Known white:"),
-    writeln(KnownWhiteWithValues),
+    writeln(KnownWhiteWithoutValues),
     writeln("Known black:"),
     writeln(KnownBlackWithValues),
 
@@ -16,7 +16,7 @@ applyRCsToCountMapsAndDupLists(N, AllCountMaps, AllDuplicateLists, AllCountMapsW
     zipped( AllCountMapsWithRC, AllUpdatedDuplicateLists, ResultPairs),
 
     maplist(removeThisFromList(KnownBlackWithValuesSet), AllUpdatedDuplicateLists, AllDuplicateListsWithoutMarked),
-    maplist(removeThisFromList(KnownWhiteWithValues), AllDuplicateListsWithoutMarked, AllDuplicateListsWithRC),
+    maplist(removeThisFromListNoValues(KnownWhiteWithoutValues), AllDuplicateListsWithoutMarked, AllDuplicateListsWithRC),
     %writeln("Updated count maps and dup lists"),
     
     %Remove the values for black tiles. This may now contain duplicates again, so remove them again.
@@ -36,20 +36,23 @@ redundantConstraints(N, [HCountMap| TCountMaps] , [HDuplicateList | TDuplicateLi
 
 %Find all known values because of RCS on one row/column.
 redundantConstraintsForRowOrColumn(N, CountMap, DuplicateList, KnownWhiteSofar, KnownBlackSoFar, KnownWhiteRes, KnownBlackRes):-
-    sandwichPair(N, CountMap, DuplicateList, KnownWhiteSP),
-    sandwichTriple(N, DuplicateList, KnownWhiteSP, KnownBlackST),
-    pairIsolation(N, CountMap, DuplicateList, KnownBlackPI),
+    sandwichPair(N, CountMap, DuplicateList, KnownWhiteSPWithValues, KnownWhiteSP),
+    sandwichTriple(N, DuplicateList, KnownWhiteSPWithValues, KnownBlackST, KnownWhiteST),
+    pairIsolation(N, CountMap, DuplicateList, KnownBlackPI, KnownWhitePI),
     
     %write("Pair isolation res:"),
     %writeln(KnownBlackPI),
+    %write("white:"),
+    %writeln(KnownWhitePI),
     %write("sandwichPair result (known white): "),
     %writeln(KnownWhiteSP),
     %write("sandwichTriple result (known black): "),
     %writeln(KnownBlackST),
+    %write("sandwichTriple result (known white): "),
+    %writeln(KnownWhiteST),
 
-    append(KnownBlackPI, KnownBlackST, AllKnownBlack),
-    append(KnownBlackSoFar, AllKnownBlack, KnownBlackRes),
-    append(KnownWhiteSofar, KnownWhiteSP, KnownWhiteRes),
+    flatten([KnownBlackSoFar, KnownBlackPI, KnownBlackST ], KnownBlackRes),
+    flatten([KnownWhiteSofar, KnownWhitePI, KnownWhiteST, KnownWhiteSP], KnownWhiteRes),
     !.
 
 %Updates the pair of a countmap and a duplist for a row or column, according to now known black values
@@ -94,6 +97,17 @@ decrementValueInCountmap(CountMap, (_X,_Y,V), NewCountMap):-
 %different order than regular subtract, useful for when using it with maplist
 removeThisFromList(ToRemove, From, Result):-
     subtract(From, ToRemove, Result).
+
+removeThisFromListNoValues([], Result ,Result).
+
+%Removes positions without value from a lists with positions with value
+% Example: remove (1,1) from  [(1,1,1), (5,5,5)] becomes [(5,5,5)] 
+removeThisFromListNoValues( [ PosXY | TRemove ], From, Result):-
+    exclude( equalIgnoringValue(PosXY) , From, PartialResult),
+    removeThisFromListNoValues(TRemove, PartialResult, Result ).
+
+equalIgnoringValue( (X, Y), (X,Y,_)).
+
 
 %Same as a zip function in any functional programming language.
 %but enforces the lists to be the same length!
