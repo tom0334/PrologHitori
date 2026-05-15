@@ -6,8 +6,8 @@
 
 :- use_module(library(apply)).
 :- use_module(library(lists)).
-:- include('src/examplePuzzles.pl').
-:- include('src/debugPuzzles.pl').
+:- include('src/includedPuzzles/examplePuzzles.pl').
+:- include('src/includedPuzzles/debugPuzzles.pl').
 :- include('src/utils.pl').
 :- include('src/duplicateFinding.pl').
 :- include('src/testingUtils.pl').
