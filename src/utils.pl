@@ -1,16 +1,19 @@
-%%%%%%%%%%%%%%%%%%%%%
-%Utils
-%%%%%%%%%%%%%5
+%General Utils used throughout the model
 
-
+%converts a X,Y,Z position into a X,Y position.
 stripValue((X,Y,_), (X,Y)).
 
 convertToValueOnlyPositions(PositionsWithValue, Result) :-
     maplist(stripValue, PositionsWithValue, PositionsWithoutValue),
     list_to_ord_set(PositionsWithoutValue, Result).
 
+%Same as a zip function in any functional programming language.
+%but enforces the lists to be the same length!
+zipped([], [], []).
+zipped([X|Xs], [Y|Ys], [(X,Y)|Zs]) :-
+    zipped(Xs, Ys, Zs).
 
-
+%WARNING: This is slow!
 getRow(Board, X, Row):- nth0(X,Board,Row).
 
 %get from board at X,Y. Top Left is 0,0.
@@ -40,5 +43,4 @@ sameShape([], []).
 sameShape([A|As], [B|Bs]) :-
     same_length(A, B),
     sameShape(As, Bs).
-
 

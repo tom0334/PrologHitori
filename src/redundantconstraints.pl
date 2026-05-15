@@ -1,4 +1,4 @@
-%Applies all RCs to the countmaps, duplicate lists, and also returns which tiles can be preMarked (known black)
+%Applies all RCs to the countmaps, duplicate lists, and also returns which tiles can be preMarked (known black (without values))
 applyRCsToCountMapsAndDupLists(N, AllCountMaps, AllDuplicateLists, AllCountMapsWithRC, AllDuplicateListsWithRC, PreMarked):-
     redundantConstraints(N,AllCountMaps,AllDuplicateLists,[],[],KnownWhiteWithoutValues,KnownBlackWithValues),
     writeln("Known white:"),
@@ -6,20 +6,20 @@ applyRCsToCountMapsAndDupLists(N, AllCountMaps, AllDuplicateLists, AllCountMapsW
     writeln("Known black:"),
     writeln(KnownBlackWithValues),
 
-    %A tile may be marked black by multiple RCs, filter out those duplicates:
+    %A tile may be marked black by multiple RCs, filter out those duplicates
     list_to_ord_set(KnownBlackWithValues, KnownBlackWithValuesSet),
 
-    %change the lists of countmaps and the lists of duplists to a list of (CountList, DupList)
-    %(So that we can use maplist on the pair)
+    %Now we will update the countmaps and duplicate lists to account for the newly known black tiles.
+    %Change the lists of countmaps and the lists of duplists to a list of (CountList, DupList)
+    %So that we can use maplist on the pair
     zipped(AllCountMaps, AllDuplicateLists, Pairs),
     maplist(updateCMAndDupList(KnownBlackWithValuesSet), Pairs, ResultPairs),
     zipped( AllCountMapsWithRC, AllUpdatedDuplicateLists, ResultPairs),
 
-    maplist(removeThisFromList(KnownBlackWithValuesSet), AllUpdatedDuplicateLists, AllDuplicateListsWithoutMarked),
-    maplist(removeThisFromListNoValues(KnownWhiteWithoutValues), AllDuplicateListsWithoutMarked, AllDuplicateListsWithRC),
-    %writeln("Updated count maps and dup lists"),
+    %Remove the known white tiles from the duplists, since we know that we never have to consider them to be marked.
+    maplist(removeThisFromListNoValues(KnownWhiteWithoutValues), AllUpdatedDuplicateLists, AllDuplicateListsWithRC),
     
-    %Remove the values for black tiles. This may now contain duplicates again, so remove them again.
+    %Remove the values for black tiles. This may now contain duplicates again, so we have remove them again.
     maplist(stripValue,KnownBlackWithValuesSet, KnownBlackWithoutValues),
 
     %After removing those duplicates, we know the premarked
@@ -40,15 +40,15 @@ redundantConstraintsForRowOrColumn(N, CountMap, DuplicateList, KnownWhiteSofar, 
     sandwichTriple(N, DuplicateList, KnownWhiteSPWithValues, KnownBlackST, KnownWhiteST),
     pairIsolation(N, CountMap, DuplicateList, KnownBlackPI, KnownWhitePI),
     
-    %write("Pair isolation res:"),
+    %write("Pair isolation res (black):"),
     %writeln(KnownBlackPI),
     %write("white:"),
     %writeln(KnownWhitePI),
-    %write("sandwichPair result (known white): "),
+    %write("sandwichPair result (white): "),
     %writeln(KnownWhiteSP),
-    %write("sandwichTriple result (known black): "),
+    %write("sandwichTriple result (black): "),
     %writeln(KnownBlackST),
-    %write("sandwichTriple result (known white): "),
+    %write("sandwichTriple result (white): "),
     %writeln(KnownWhiteST),
 
     flatten([KnownBlackSoFar, KnownBlackPI, KnownBlackST ], KnownBlackRes),
@@ -60,26 +60,25 @@ redundantConstraintsForRowOrColumn(N, CountMap, DuplicateList, KnownWhiteSofar, 
 %and then removing the tiles that are now no longer duplicates from the duplist.
 updateCMAndDupList(KnownBlackWithValuesSet, (CountMap,DupList), (ResCountMap, ResDupList) ):-
     updateCM(KnownBlackWithValuesSet, DupList,CountMap, ResCountMap),
+    
+    %remove all known black tiles from the duplist
+    subtract(DupList, KnownBlackWithValuesSet, DupListWithoutMarked),
+    
+    %Remove all that are now no longer duplicates from the duplist
     findall(Pos, noLongerNeedsToBeconsidered(ResCountMap, DupList, Pos), PositionsToBeRemoved),
-    %write("Removing: "),
-    %writeln(PositionsToBeRemoved),
-    subtract(DupList, PositionsToBeRemoved, ResDupList).
+    subtract(DupListWithoutMarked, PositionsToBeRemoved, ResDupList).
 
-%If 
+%A tile no longer needs to be considered to be marked ifs no longer a duplicate in the row/column
 noLongerNeedsToBeconsidered(CountMap, DupList, (X,Y,V)):-
     member((X,Y,V), DupList ),
     get_dict(V, CountMap, CountLeft),
     CountLeft < 2.
 
-
+%Base case. This predicate updates a countMap to account for tiles that we determined have to be black.
 updateCM([],_, ResCountMap, ResCountMap).
 
 updateCM([HKnownBlack | TKnownBlack], DupList, Countmap, ResCountMap):-
     member(HKnownBlack, DupList),
-    %write("Decrementing "),
-    %write(HKnownBlack),
-    %write(" in "),
-    %writeln(DupList),
     decrementValueInCountmap(Countmap, HKnownBlack, NewCountMap),
     updateCM(TKnownBlack, DupList, NewCountMap, ResCountMap),
     !.
@@ -108,9 +107,3 @@ removeThisFromListNoValues( [ PosXY | TRemove ], From, Result):-
 
 equalIgnoringValue( (X, Y), (X,Y,_)).
 
-
-%Same as a zip function in any functional programming language.
-%but enforces the lists to be the same length!
-zipped([], [], []).
-zipped([X|Xs], [Y|Ys], [(X,Y)|Zs]) :-
-    zipped(Xs, Ys, Zs).
