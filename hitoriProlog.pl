@@ -1,10 +1,16 @@
 :- use_module(library(apply)).
 :- use_module(library(lists)).
 :- include('src/examplePuzzles.pl').
+:- include('src/debugPuzzles.pl').
 :- include('src/utils.pl').
 :- include('src/duplicateFinding.pl').
 :- include('src/testingUtils.pl').
 :- include('src/cutofConnected.pl').
+:- include('src/sandwichPair.pl').
+:- include('src/sandwichTriple.pl').
+:- include('src/pairIsolation.pl').
+:- include('src/redundantConstraints.pl').
+:- include('src/neighbours.pl').
 
 modelVersion("3.0.2").
 
@@ -28,8 +34,17 @@ isSolutionZerodPositions(Board, PositionsToZero) :-
     append(RowList, ColumnList, AllRowsAndColumns),
     maplist(countInList, AllRowsAndColumns, AllCountMaps),
     maplist(findDuplicatePositions, AllRowsAndColumns, AllCountMaps, AllDuplicateLists),
-    maplist(dupValuesOnly([]), AllDuplicateLists, AllDupNums),
-    solveAll(AllDuplicateLists,AllCountMaps,AllDupNums, N, [], PositionsToZero).
+    
+    applyRCsToCountMapsAndDupLists(N, AllCountMaps, AllDuplicateLists, AllCountMapsWithRC, AllDuplicateListsWithRC, PreMarked),
+    write("Premarked: "),
+    writeln(PreMarked),
+    %writeln(AllCountMaps),
+    %writeln(AllCountMapsWithRC),
+    %writeln(AllDuplicateLists),
+    %writeln(AllDuplicateListsWithRC),
+    
+    maplist(dupValuesOnly([]), AllDuplicateListsWithRC, AllDupNums),
+    solveAll(AllDuplicateListsWithRC,AllCountMapsWithRC,AllDupNums, N, PreMarked, PositionsToZero).
 
 
 %params:

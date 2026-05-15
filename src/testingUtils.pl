@@ -1,3 +1,6 @@
+%Testing and writing to file utilities.
+
+%Finds a solution to a puzzle, and writes it to a file in the .singlesSol format
 isSolutionAndWrite(Board,N,Seed, OutputFile, Verbose, Solution):-
     (Verbose = 1, writeln("PROLOG: Solving..."); true),
     call_time(
@@ -21,8 +24,6 @@ isSolutionAndWrite(Board,N,Seed, OutputFile, Verbose, Solution):-
         writeln(Solution);
         true
     ).
-
-
 
 
 
