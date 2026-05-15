@@ -57,3 +57,7 @@ allColumns(Positions, ColumnList) :-
 allRows(Positions, RowList):-
     allIndices(Positions, RowIndices),  % get 0,1,2,3...
     maplist(onlyPositionsInRowY(Positions), RowIndices, RowList).
+
+% gives you the indices as pairs (X,Y) that have a nonzero value at the board
+allPositionsWithValue(Board, PositionsWithValue) :-
+    findall( (X,Y,V), elementAt(Board,X,Y,V), PositionsWithValue).
