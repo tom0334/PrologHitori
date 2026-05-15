@@ -22,8 +22,10 @@ isWhiteBecauseSandwichPair(N, AllDuplicatePositions, (X,Y,V)):-
 
 
 % Main sandwichPair predicate. Finds all knownWhite positions (XY) in a row or column, using a set of duplicate positions.
-sandwichPair(N, _CountMap, DuplicatePositions, ToExclude, KnownWhiteXY):-
-    findall(X, isWhiteBecauseSandwichPair(N, DuplicatePositions, X), KnownWhite),
-    maplist(stripValue, KnownWhite, KnownWhiteXY).
+% Gives back both the sandwich pair positions with and without value. We need the one without values throughout the model, 
+% but the list with values is useful for the sandwich triple RC. 
+sandwichPair(N, _CountMap, DuplicatePositions, KnownWhiteWithValue, KnownWhiteXY):-
+    findall(X, isWhiteBecauseSandwichPair(N, DuplicatePositions, X), KnownWhiteWithValue),
+    maplist(stripValue, KnownWhiteWithValue, KnownWhiteXY).
 
     
