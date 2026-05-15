@@ -12,11 +12,11 @@
 :- include('src/duplicateFinding.pl').
 :- include('src/testingUtils.pl').
 :- include('src/cutofConnected.pl').
-:- include('src/sandwichPair.pl').
-:- include('src/sandwichTriple.pl').
-:- include('src/pairIsolation.pl').
-:- include('src/redundantConstraints.pl').
-:- include('src/neighbours.pl').
+:- include('src/redundantConstraints/sandwichPair.pl').
+:- include('src/redundantConstraints/sandwichTriple.pl').
+:- include('src/redundantConstraints/pairIsolation.pl').
+:- include('src/redundantConstraints/redundantConstraints.pl').
+:- include('src/redundantConstraints/neighboursUtils.pl').
 
 modelVersion("3.0.2").
 
