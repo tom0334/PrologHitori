@@ -18,7 +18,7 @@
 :- include('src/redundantConstraints/redundantConstraints.pl').
 :- include('src/redundantConstraints/neighboursUtils.pl').
 
-modelVersion("3.0.2").
+modelVersion("4.0").
 
 %if you just want to see the solved puzzle board in your console, use this. 
 isSolution(Board, SolutionBoard) :- 
