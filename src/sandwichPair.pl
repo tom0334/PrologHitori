@@ -1,5 +1,8 @@
 %Sandwich pair redundant constraint
 
+% Finds a position that must be white because it is surrounded by two positions with the same value
+
+% HORIZONTAL case
 isWhiteBecauseSandwichPair(N, AllDuplicatePositions, (X,Y,V)):-
     member((X,Y,V), AllDuplicatePositions),
     leftNeighbour(N,(X,Y,V), (LNX,LNY,LNV)),
@@ -8,6 +11,7 @@ isWhiteBecauseSandwichPair(N, AllDuplicatePositions, (X,Y,V)):-
     member((RNX, RNY, RNV), AllDuplicatePositions),
     RNV = LNV.
 
+% VERTICAL case
 isWhiteBecauseSandwichPair(N, AllDuplicatePositions, (X,Y,V)):-
     member((X,Y,V), AllDuplicatePositions),
     upNeigbour(N,(X,Y,V), (UNX,UNY,UNV)),
@@ -17,11 +21,9 @@ isWhiteBecauseSandwichPair(N, AllDuplicatePositions, (X,Y,V)):-
     UNV = DNV.
 
 
-% we can remove the one in between from the duplicate positions, as we know it will never be marked. 
-% do NOT change the countmap, we still need to select another one with the same number!
-% This is equivalaent to the recursive solve predicate skipping it.
-sandwichPair(N, _CountMap, DuplicatePositions, ToExclude, ToExcludeNoValues):-
-    findall(X, isWhiteBecauseSandwichPair(N, DuplicatePositions, X), ToExclude),
-    maplist(stripValue, ToExclude, ToExcludeNoValues).
+% Main sandwichPair predicate. Finds all knownWhite positions (XY) in a row or column, using a set of duplicate positions.
+sandwichPair(N, _CountMap, DuplicatePositions, ToExclude, KnownWhiteXY):-
+    findall(X, isWhiteBecauseSandwichPair(N, DuplicatePositions, X), KnownWhite),
+    maplist(stripValue, KnownWhite, KnownWhiteXY).
 
     

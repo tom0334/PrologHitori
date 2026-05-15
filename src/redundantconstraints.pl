@@ -1,6 +1,6 @@
-%This file contains anything related to applying redundant constraints to countMaps and to Lists of duplicates (duplists).
+% This file contains anything related to applying redundant constraints to countMaps and to Lists of duplicates (duplists).
 
-%Applies all RCs to the countmaps, duplicate lists, and also returns which tiles can be preMarked (known black (without values))
+% Applies all RCs to the countmaps, duplicate lists, and also returns which tiles can be preMarked (known black (without values))
 applyRCsToCountMapsAndDupLists(N, AllCountMaps, AllDuplicateLists, AllCountMapsWithRC, AllDuplicateListsWithRC, PreMarked):-
     redundantConstraints(N,AllCountMaps,AllDuplicateLists,[],[],KnownWhiteWithoutValues,KnownBlackWithValues),
     writeln("Known white:"),
@@ -57,9 +57,9 @@ redundantConstraintsForRowOrColumn(N, CountMap, DuplicateList, KnownWhiteSofar, 
     flatten([KnownWhiteSofar, KnownWhitePI, KnownWhiteST, KnownWhiteSP], KnownWhiteRes),
     !.
 
-%Updates the pair of a countmap and a duplist for a row or column, according to now known black values
+% Updates the pair of a countmap and a duplist for a row or column, according to now known black values
 % Does so by updating the counts in the countmap, 
-%and then removing the tiles that are now no longer duplicates from the duplist.
+ %and then removing the tiles that are now no longer duplicates from the duplist.
 updateCMAndDupList(KnownBlackWithValuesSet, (CountMap,DupList), (ResCountMap, ResDupList) ):-
     updateCM(KnownBlackWithValuesSet, DupList,CountMap, ResCountMap),
     
@@ -70,14 +70,14 @@ updateCMAndDupList(KnownBlackWithValuesSet, (CountMap,DupList), (ResCountMap, Re
     findall(Pos, noLongerNeedsToBeconsidered(ResCountMap, DupList, Pos), PositionsToBeRemoved),
     subtract(DupListWithoutMarked, PositionsToBeRemoved, ResDupList).
 
-%A tile no longer needs to be considered to be marked ifs no longer a duplicate in the row/column
+% A tile no longer needs to be considered to be marked ifs no longer a duplicate in the row/column
 noLongerNeedsToBeconsidered(CountMap, DupList, (X,Y,V)):-
     member((X,Y,V), DupList ),
     get_dict(V, CountMap, CountLeft),
     CountLeft < 2.
 
-%Base case. This predicate updates a countMap to account for tiles that we determined have to be black.
-%Its essentially the same as marking a list of tiles in one go.
+% Base case. This predicate updates a countMap to account for tiles that we determined have to be black.
+% Its essentially the same as marking a list of tiles in one go.
 updateCM([],_, ResCountMap, ResCountMap).
 
 updateCM([HKnownBlack | TKnownBlack], DupList, Countmap, ResCountMap):-
@@ -96,13 +96,13 @@ decrementValueInCountmap(CountMap, (_X,_Y,V), NewCountMap):-
     put_dict(V, CountMap, NewCount, NewCountMap).
 
 
-%different order than regular subtract, useful for when using it with maplist
+% Different order than regular subtract, useful for when using it with maplist
 removeThisFromList(ToRemove, From, Result):-
     subtract(From, ToRemove, Result).
 
 removeThisFromListNoValues([], Result ,Result).
 
-%Removes positions without value from a lists with positions with value
+% Removes positions without value from a lists with positions with value
 % Example: remove (1,1) from  [(1,1,1), (5,5,5)] becomes [(5,5,5)] 
 removeThisFromListNoValues( [ PosXY | TRemove ], From, Result):-
     exclude( equalIgnoringValue(PosXY) , From, PartialResult),

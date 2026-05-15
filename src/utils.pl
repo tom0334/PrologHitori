@@ -1,30 +1,31 @@
 %General Utils used throughout the model
 
-%converts a X,Y,Z position into a X,Y position.
+% Converts a X,Y,Z position into a X,Y position.
 stripValue((X,Y,_), (X,Y)).
 
+% Converts multiple X,Y,Z positions into UNIQUE x,y positions.
 convertToValueOnlyPositions(PositionsWithValue, Result) :-
     maplist(stripValue, PositionsWithValue, PositionsWithoutValue),
     list_to_ord_set(PositionsWithoutValue, Result).
 
-%Same as a zip function in any functional programming language.
-%but enforces the lists to be the same length!
+% Same as a zip function in any functional programming language.
+% but enforces the lists to be the same length!
 zipped([], [], []).
 zipped([X|Xs], [Y|Ys], [(X,Y)|Zs]) :-
     zipped(Xs, Ys, Zs).
 
-%WARNING: This is slow!
+ %WARNING: This is slow!
 getRow(Board, X, Row):- nth0(X,Board,Row).
 
-%get from board at X,Y. Top Left is 0,0.
-%WARNING: This is slow!
+% Get from board at X,Y. Top Left is 0,0.
+% WARNING: This is slow!
 elementAt(Board, X,Y,Element):-
     getRow(Board,Y,Row), 
     % row is now the entire row, get the element from that:
     nth0(X,Row,Element).
 
 
-%For translating a set of chosen duplicates to a board (list of rows).
+% For translating a set of chosen duplicates to a board (list of rows).
 %%%%%%%%%%%%
 translateToBoard(Board, Zerod, Solution):-
     sameShape(Board, Solution),
