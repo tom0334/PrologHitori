@@ -1,3 +1,6 @@
+%This file contains predicates for checking the connectivity constraint using the Iterative cutoff detection method.
+
+
 %%%%%%%%%%%%%%%
 %Call this to check if the chosenPositions do NOT cut off any white squares
 %Params: 

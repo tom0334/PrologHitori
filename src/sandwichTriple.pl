@@ -1,3 +1,5 @@
+%Sandwich triple redundant constraint.
+
 sandwichTripleBlackPositionsAround(N, AllDuplicatePositions, (X,Y,V), BlackPositions):-
     member((X,Y,V), AllDuplicatePositions),
     upNeigbour(N,(X,Y,V), (UNX,UNY,UNV)),

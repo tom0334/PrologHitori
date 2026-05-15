@@ -1,3 +1,5 @@
+%This file contains anything related to applying redundant constraints to countMaps and to Lists of duplicates (duplists).
+
 %Applies all RCs to the countmaps, duplicate lists, and also returns which tiles can be preMarked (known black (without values))
 applyRCsToCountMapsAndDupLists(N, AllCountMaps, AllDuplicateLists, AllCountMapsWithRC, AllDuplicateListsWithRC, PreMarked):-
     redundantConstraints(N,AllCountMaps,AllDuplicateLists,[],[],KnownWhiteWithoutValues,KnownBlackWithValues),
@@ -75,6 +77,7 @@ noLongerNeedsToBeconsidered(CountMap, DupList, (X,Y,V)):-
     CountLeft < 2.
 
 %Base case. This predicate updates a countMap to account for tiles that we determined have to be black.
+%Its essentially the same as marking a list of tiles in one go.
 updateCM([],_, ResCountMap, ResCountMap).
 
 updateCM([HKnownBlack | TKnownBlack], DupList, Countmap, ResCountMap):-

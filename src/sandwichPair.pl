@@ -1,3 +1,5 @@
+%Sandwich pair redundant constraint
+
 isWhiteBecauseSandwichPair(N, AllDuplicatePositions, (X,Y,V)):-
     member((X,Y,V), AllDuplicatePositions),
     leftNeighbour(N,(X,Y,V), (LNX,LNY,LNV)),

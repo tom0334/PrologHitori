@@ -1,3 +1,5 @@
+%This file contains predicates for finding neigbours within the board. Used for some redundant constraints.
+
 leftNeighbour( _N, (MeX, MeY, _MeV), (LNX,LNY, _LNV) ):-
     LNX is MeX -1,
     LNY is MeY,

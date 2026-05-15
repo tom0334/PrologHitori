@@ -1,3 +1,5 @@
+%The Pair isolation redundant constraint
+
 blackPositionsBecauseOfPairIsolationForV(AllDuplicatePositions, V, (BlackX, BlackY, BlackV)):-
     member((X,Y,V), AllDuplicatePositions),
     member((X2,Y2,V), AllDuplicatePositions),
