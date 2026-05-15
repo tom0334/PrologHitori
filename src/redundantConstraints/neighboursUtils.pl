@@ -28,12 +28,16 @@ neigbour(N, (MeX, MeY), (NX,NY)):-
         downNeighbour(N, (MeX, MeY, _), (NX,NY,_))
     ).
 
-%These white neigbours may contain duplicates, but that is OK, because we will have to remove the duplicates anyway
+
+% Finds all neigbours (XY) of a list of known black positions. These can be marked as white because of the adjacency constraint.
+% This predicate is used by multiple redundant constraints that find known black positions.
+% These white neigbours may contain duplicates, but that is OK, because we will have to remove the duplicates anyway
 % when we apply multiple redundant constraints.
 findAllWhiteNeigboursOfPositions(N, BlackPositions, WhiteNeigboursNoValues):-
     maplist(findAllWhiteNeigboursOfBlackPosition(N), BlackPositions, ListOfLists),
     flatten(ListOfLists, WhiteNeigboursNoValues).
 
+%Finds the known white neigbours (X,Y) of a single black position (X,Y,V)
 findAllWhiteNeigboursOfBlackPosition(N, PositionWithValue, NeighborsWithoutValue):-
     stripValue(PositionWithValue, PositionsWithoutValue),
     findall(Neighbor, neigbour(N, PositionsWithoutValue, Neighbor), NeighborsWithoutValue).
