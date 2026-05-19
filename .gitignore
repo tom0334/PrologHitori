@@ -3,6 +3,6 @@ solution.out
 testoutput.csv
 /puzzles
 /testoutput
-
+/rcTestPuzzles
 tester.py
 solution_checker.py
